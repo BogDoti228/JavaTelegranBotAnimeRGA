@@ -1,19 +1,26 @@
+import commands.Urls;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.log4j.Logger;
-import org.telegram.telegrambots.TelegramBotsApi;
-import org.telegram.telegrambots.api.methods.GetFile;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.api.objects.PhotoSize;
-import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
-import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.File;
+import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
-import java.io.File;
-import java.io.FileInputStream;
+
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Comparator;
 
 @NoArgsConstructor
@@ -33,6 +40,44 @@ public class Bot extends TelegramLongPollingBot {
         this.botToken = botToken;
     }
 
+    public static String executePost(String targetURL) {
+        HttpURLConnection connection = null;
+
+        try {
+            URL url = new URL(targetURL);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type",
+                    "application/x-www-form-urlencoded");
+
+            connection.setRequestProperty("Content-Language", "en-US");
+
+            connection.setUseCaches(false);
+            connection.setDoOutput(true);
+
+            DataOutputStream wr = new DataOutputStream (
+                    connection.getOutputStream());
+            wr.close();
+
+            InputStream is = connection.getInputStream();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+            StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
+            String line;
+            while ((line = rd.readLine()) != null) {
+                response.append(line);
+            }
+            rd.close();
+            return response.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
     @Override
     public void onUpdateReceived(Update update) {
         log.debug("Receive new Update. updateID: " + update.getUpdateId());
@@ -42,12 +87,21 @@ public class Bot extends TelegramLongPollingBot {
         var inputPhoto = update.getMessage().getPhoto();
         if (inputPhoto != null && !inputPhoto.isEmpty())
         {
-            var f_id = inputPhoto.stream().max(Comparator.comparing(PhotoSize::getFileSize))
+            var fileId = inputPhoto.stream().max(Comparator.comparing(PhotoSize::getFileSize))
                     .orElse(null).getFileId();
-            //Тут ТИПА НУЖНО СКАЧАТЬ ФАЙЛ НА КОМП КАК ТО Я ТОЛЬКО СМОГ ДОБЫТЬ ФАЙЛ АЙДИ НО НЕ ПОНИМАЮ ЧО С НИМ ДЕЛАТЬ
-            var getFile = new GetFile().setFileId(f_id);
-
-
+            var request = "https://api.telegram.org/bot"+botToken+"/getFile?file_id=" + fileId;
+            var something = executePost(request);
+            assert something != null;
+            var arrayInfo = something.split(":");
+            var strangePath = arrayInfo[arrayInfo.length-1];
+            var pathFile = new StringBuilder();
+            for (var i = 1; i < strangePath.length() - 3; i++) {
+                pathFile.append(strangePath.charAt(i));
+            }
+            var url = File.getFileUrl(botToken, pathFile.toString());
+            //при добавлении этой ссылки у нас будет ошибка потому что она сразу скачивает файл и там просто пустая страница
+            //но я думаю это хорошо, просто устал думать
+            Urls.urls.add(url);
         }
         else
         {
@@ -74,9 +128,9 @@ public class Bot extends TelegramLongPollingBot {
                 }
                 var sendTelegramPhoto = new SendPhoto();
                 sendTelegramPhoto.setChatId(chatId);
-                sendTelegramPhoto.setPhoto("https://images.alphacoders.com/727/72743.jpg");
+                sendTelegramPhoto.setPhoto(Urls.getUrl());
                 try {
-                    sendPhoto(sendTelegramPhoto);
+                    execute(sendTelegramPhoto);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
@@ -91,16 +145,6 @@ public class Bot extends TelegramLongPollingBot {
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
-
-                /*var getTelegramPhoto = new SendPhoto();
-                getTelegramPhoto.setChatId(chatId);
-                var photo = getTelegramPhoto.getPhoto();
-                try {
-                    sendPhoto(getTelegramPhoto);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-                message.setText(photo);*/
             }
         }
     }
