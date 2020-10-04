@@ -3,6 +3,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.log4j.Logger;
 import org.telegram.telegrambots.TelegramBotsApi;
+import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.api.objects.PhotoSize;
@@ -44,6 +45,9 @@ public class Bot extends TelegramLongPollingBot {
             var f_id = inputPhoto.stream().max(Comparator.comparing(PhotoSize::getFileSize))
                     .orElse(null).getFileId();
             //Тут ТИПА НУЖНО СКАЧАТЬ ФАЙЛ НА КОМП КАК ТО Я ТОЛЬКО СМОГ ДОБЫТЬ ФАЙЛ АЙДИ НО НЕ ПОНИМАЮ ЧО С НИМ ДЕЛАТЬ
+            var getFile = new GetFile().setFileId(f_id);
+
+
         }
         else
         {
