@@ -1,2 +1,12 @@
 # Project exclude paths
 /target/
+
+#Idea
+.idea/
+
+#logs
+*.log
+
+#Package Files
+*.rar
+*.zip
