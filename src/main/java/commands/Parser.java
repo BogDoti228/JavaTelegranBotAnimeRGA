@@ -14,6 +14,8 @@ public class Parser {
                 return Command.HELP;
             case "/sendPhoto":
                 return Command.SEND_PHOTO;
+            case "/photo":
+                return Command.PHOTO;
             default:
                 return Command.UNKNOWN;
         }

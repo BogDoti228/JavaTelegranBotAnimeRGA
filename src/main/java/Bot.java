@@ -1,3 +1,6 @@
+import commands.Command;
+import commands.FilePath;
+import commands.Parser;
 import commands.Urls;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,6 +29,7 @@ import java.util.Comparator;
 @NoArgsConstructor
 public class Bot extends TelegramLongPollingBot {
     private static final Logger log = Logger.getLogger(Bot.class);
+    private static  Parser parser = new Parser();
     final int RECONNECT_PAUSE = 10000;
 
     @Setter
@@ -40,44 +44,6 @@ public class Bot extends TelegramLongPollingBot {
         this.botToken = botToken;
     }
 
-    public static String executePost(String targetURL) {
-        HttpURLConnection connection = null;
-
-        try {
-            URL url = new URL(targetURL);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type",
-                    "application/x-www-form-urlencoded");
-
-            connection.setRequestProperty("Content-Language", "en-US");
-
-            connection.setUseCaches(false);
-            connection.setDoOutput(true);
-
-            DataOutputStream wr = new DataOutputStream (
-                    connection.getOutputStream());
-            wr.close();
-
-            InputStream is = connection.getInputStream();
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-            StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
-            String line;
-            while ((line = rd.readLine()) != null) {
-                response.append(line);
-            }
-            rd.close();
-            return response.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
-        }
-    }
-
     @Override
     public void onUpdateReceived(Update update) {
         log.debug("Receive new Update. updateID: " + update.getUpdateId());
@@ -85,61 +51,87 @@ public class Bot extends TelegramLongPollingBot {
         Long chatId = update.getMessage().getChatId();
         String inputText = update.getMessage().getText();
         var inputPhoto = update.getMessage().getPhoto();
+        var inputVideo = update.getMessage().getVideo();
+        var inputGif = update.getMessage().getAnimation();
+
         if (inputPhoto != null && !inputPhoto.isEmpty())
         {
             var fileId = inputPhoto.stream().max(Comparator.comparing(PhotoSize::getFileSize))
                     .orElse(null).getFileId();
-            var request = "https://api.telegram.org/bot"+botToken+"/getFile?file_id=" + fileId;
-            var something = executePost(request);
-            assert something != null;
-            var arrayInfo = something.split(":");
-            var strangePath = arrayInfo[arrayInfo.length-1];
-            var pathFile = new StringBuilder();
-            for (var i = 1; i < strangePath.length() - 3; i++) {
-                pathFile.append(strangePath.charAt(i));
-            }
-            var url = File.getFileUrl(botToken, pathFile.toString());
-            //при добавлении этой ссылки у нас будет ошибка потому что она сразу скачивает файл и там просто пустая страница
-            //но я думаю это хорошо, просто устал думать
-            Urls.urls.add(url);
+            var url = FilePath.getDownloadUrl(fileId, botToken);
+            Urls.downloadUrls.add(url);
+        }
+        else if (inputVideo != null){
+            var fileId = inputVideo.getFileId();
+            var url = FilePath.getDownloadUrl(fileId, botToken);
+            Urls.downloadUrls.add(url);
+        }
+        else if (inputGif != null)
+        {
+            var fileId = inputGif.getFileId();
+            var url = FilePath.getDownloadUrl(fileId, botToken);
+            Urls.downloadUrls.add(url);
         }
         else
         {
-            if (inputText.startsWith("/start")) {
-                SendMessage message = new SendMessage();
+            var command = parser.Parse(inputText);
+
+            if (command == Command.START) {
+                var message = new SendMessage();
                 message.setChatId(chatId);
                 message.setText("Привет напиши /photo чтобы получить фото, " +
                         "или напишите /sendPhoto чтобы отправить нам картинку");
+
                 try {
                     execute(message);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
             }
-
-            if (inputText.startsWith("/photo")) {
-                SendMessage message = new SendMessage();
+            else if (command == Command.PHOTO) {
+                var message = new SendMessage();
                 message.setChatId(chatId);
                 message.setText("Вот ваша фотография, удачного дня");
-                try {
-                    execute(message);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
+
                 var sendTelegramPhoto = new SendPhoto();
                 sendTelegramPhoto.setChatId(chatId);
                 sendTelegramPhoto.setPhoto(Urls.getUrl());
+
                 try {
+                    execute(message);
                     execute(sendTelegramPhoto);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
-            }
-
-            if (inputText.startsWith("/sendPhoto")) {
-                SendMessage message = new SendMessage();
+            } else if (command == Command.SEND_PHOTO) {
+                var message = new SendMessage();
                 message.setChatId(chatId);
                 message.setText("Пожалуйста ниже отправте фотографию");
+
+                try {
+                    execute(message);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
+            else if (command == Command.HELP) {
+                var message = new SendMessage();
+                message.setChatId(chatId);
+                message.setText("/photo - запросить фото" +
+                        "/sendPhoto - прислать фото");
+
+                try {
+                    execute(message);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
+            else if (command == Command.UNKNOWN)
+            {
+                var message = new SendMessage();
+                message.setChatId(chatId);
+                message.setText("Нет такой команды");
+
                 try {
                     execute(message);
                 } catch (TelegramApiException e) {
