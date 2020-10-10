@@ -72,7 +72,7 @@ public class GoogleDriveClient {
             throws IOException {
         String query = QueryCreator
                 .createQuery(subFolderName, "application/vnd.google-apps.folder", googleFolderIdParent);
-        var folders = getFiles(query);
+        var folders = getFilesByQuery(query);
         if (folders.size() == 0)
             return null;
         if (folders.size() != 1)
@@ -87,10 +87,15 @@ public class GoogleDriveClient {
     )
             throws IOException {
         String query = QueryCreator.createQuery(fileName, mimeType, folderId);
-        var files = getFiles(query);
+        var files = getFilesByQuery(query);
         if (files.size() == 0)
             return null;
         return files.get(0);
+    }
+
+    public static List<File> getAllFilesInFolder(String folderId) throws IOException {
+        var query = QueryCreator.createQuery(null,null, folderId);
+        return getFilesByQuery(query);
     }
 
     private static Drive getDriveService() throws IOException {
@@ -142,7 +147,7 @@ public class GoogleDriveClient {
         return file;
     }
 
-    private static List<File> getFiles(String query) throws IOException {
+    private static List<File> getFilesByQuery(String query) throws IOException {
         Drive driveService = getDriveService();
         String pageToken = null;
         List<File> files
@@ -158,3 +163,4 @@ public class GoogleDriveClient {
         return files;
     }
 }
+

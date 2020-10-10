@@ -26,9 +26,7 @@ public class QueryCreator {
                 builder.append("and ");
             builder.append('\'').append("root").append("' in parents");
         }
-        var query = builder.toString();
-        System.out.println(query);
-        return query;
+        return builder.toString();
     }
 
     private static boolean shouldAddAnd(StringBuilder current)
