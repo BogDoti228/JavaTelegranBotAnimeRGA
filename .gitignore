@@ -7,6 +7,10 @@
 #logs
 *.log
 
+#privateInfo
+/credentials/
+src/main/java/BotConstants.java
+
 #Package Files
 *.rar
 *.zip
