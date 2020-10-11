@@ -9,8 +9,10 @@ import org.apache.log4j.Logger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
 import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -50,6 +52,7 @@ public class Bot extends TelegramLongPollingBot {
 
         Long chatId = update.getMessage().getChatId();
         String inputText = update.getMessage().getText();
+
         var inputPhoto = update.getMessage().getPhoto();
         var inputVideo = update.getMessage().getVideo();
         var inputGif = update.getMessage().getAnimation();
@@ -79,11 +82,49 @@ public class Bot extends TelegramLongPollingBot {
             if (command == Command.START) {
                 var message = new SendMessage();
                 message.setChatId(chatId);
-                message.setText("Привет напиши /photo чтобы получить фото, " +
-                        "или напишите /sendPhoto чтобы отправить нам картинку");
+                message.setText("Привет всем ползьующимся этим ботом=)\n+" +
+                        " напиши /photo чтобы получить фото\n " +
+                        " напиши /video чтобы получить видео\n " +
+                        " напиши /gif чтобы получить гифку\n " +
+                        " фото, видео, гиф можно кидать боту для пополнения базы данных," +
+                        " кидайте все что сочтете достойным для нас," +
+                        " всем очень благодарны за использование=)");
 
                 try {
                     execute(message);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
+            else if (command == Command.VIDEO) {
+                var message = new SendMessage();
+                message.setChatId(chatId);
+                message.setText("Вот ваше видео, удачного дня");
+
+                var sendTelegramVideo = new SendVideo();
+                sendTelegramVideo.setChatId(chatId);
+                sendTelegramVideo.setVideo(Urls.getUrlVideo());
+
+                try {
+                    execute(message);
+                    execute(sendTelegramVideo);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
+            else if (command == Command.GIF) {
+                var message = new SendMessage();
+                message.setChatId(chatId);
+                message.setText("Вот ваша гифка, удачного дня");
+
+
+                var sendTelegramAnimation = new SendAnimation();
+                sendTelegramAnimation.setChatId(chatId);
+                sendTelegramAnimation.setAnimation(Urls.getUrlGif());
+
+                try {
+                    execute(message);
+                    execute(sendTelegramAnimation);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
@@ -95,7 +136,7 @@ public class Bot extends TelegramLongPollingBot {
 
                 var sendTelegramPhoto = new SendPhoto();
                 sendTelegramPhoto.setChatId(chatId);
-                sendTelegramPhoto.setPhoto(Urls.getUrl());
+                sendTelegramPhoto.setPhoto(Urls.getUrlPhoto());
 
                 try {
                     execute(message);
@@ -103,22 +144,15 @@ public class Bot extends TelegramLongPollingBot {
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
-            } else if (command == Command.SEND_PHOTO) {
-                var message = new SendMessage();
-                message.setChatId(chatId);
-                message.setText("Пожалуйста ниже отправте фотографию");
-
-                try {
-                    execute(message);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
             }
             else if (command == Command.HELP) {
                 var message = new SendMessage();
                 message.setChatId(chatId);
-                message.setText("/photo - запросить фото" +
-                        "/sendPhoto - прислать фото");
+                message.setText("/photo - запросить фото\n /video - запросить видео\n" +
+                        " /gif - запросить гифку \n " +
+                        "можете кидать любую фотку гиф или видео" +
+                        " - все сохраним, поплняйте нашу базу " +
+                        "- все будут круче и всего будет больше=)");
 
                 try {
                     execute(message);

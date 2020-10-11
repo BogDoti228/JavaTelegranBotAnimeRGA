@@ -17,6 +17,7 @@ public class FilePath {
     public static String getDownloadUrl(String fileId, String botToken){
         var request = getRequestHttp(fileId, botToken);
         var data = executePost(request);
+        assert data != null;
         var pathFile = getFilePath(data);
         return File.getFileUrl(botToken, pathFile);
     }

@@ -12,10 +12,12 @@ public class Parser {
                 return Command.START;
             case "/help":
                 return Command.HELP;
-            case "/sendPhoto":
-                return Command.SEND_PHOTO;
             case "/photo":
                 return Command.PHOTO;
+            case "/gif":
+                return Command.GIF;
+            case "/video":
+                return Command.VIDEO;
             default:
                 return Command.UNKNOWN;
         }
