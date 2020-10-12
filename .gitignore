@@ -9,7 +9,8 @@
 
 #privateInfo
 /credentials/
-src/main/java/BotConstants.java
+BotConstants.java
+
 
 #Package Files
 *.rar
