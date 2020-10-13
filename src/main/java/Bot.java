@@ -1,7 +1,5 @@
-import commands.Command;
-import commands.FilePath;
-import commands.Parser;
-import commands.Urls;
+import commands.*;
+import googleDrive.GoogleDriveClient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
+import it.grabz.grabzit.*;
 
 
 import java.io.*;
@@ -61,34 +60,18 @@ public class Bot extends TelegramLongPollingBot {
             var fileId = inputPhoto.stream().max(Comparator.comparing(PhotoSize::getFileSize))
                     .orElse(null).getFileId();
             var url = FilePath.getDownloadUrl(fileId, botToken);
-            try{
-                var stream = new URL(url).openStream();
-                Urls.sendPhotoGoogleDisk(stream, "jpg");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Urls.downloadUrls.add(url);
+            Urls.sendFileGoogleDisk(BotConstants.PHOTO_FOLDER_ID, url, "Image/jpg", "228.jpg");
         }
         else if (inputVideo != null){
             var fileId = inputVideo.getFileId();
             var url = FilePath.getDownloadUrl(fileId, botToken);
-            Urls.downloadUrls.add(url);
+            Urls.sendFileGoogleDisk(BotConstants.VIDEO_FOLDER_ID, url, "video/mp4", "1488.mp4");
         }
         else if (inputGif != null)
         {
             var fileId = inputGif.getFileId();
             var url = FilePath.getDownloadUrl(fileId, botToken);
-            try{
-            var stream = new URL(url).openStream();
-                var len = stream.available();
-                byte[] data = new byte[len];
-                stream.read(data);
-                stream.close();
-                Files.write(new java.io.File("temp.jpg").toPath(), data);
-            } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            Urls.downloadUrls.add(url);
+            Urls.sendGifGoogleDisk(BotConstants.GIF_FOLDER_ID, url, "video/gif", "1337.gif");
         }
         else
         {
@@ -118,7 +101,11 @@ public class Bot extends TelegramLongPollingBot {
 
                 var sendTelegramVideo = new SendVideo();
                 sendTelegramVideo.setChatId(chatId);
-                sendTelegramVideo.setVideo(Urls.getUrlVideo());
+                try {
+                    sendTelegramVideo.setVideo(Urls.getUrlVideo());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 try {
                     execute(message);
@@ -135,7 +122,11 @@ public class Bot extends TelegramLongPollingBot {
 
                 var sendTelegramAnimation = new SendAnimation();
                 sendTelegramAnimation.setChatId(chatId);
-                sendTelegramAnimation.setAnimation(Urls.getUrlGif());
+                try {
+                    sendTelegramAnimation.setAnimation(Urls.getUrlGif());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 try {
                     execute(message);
@@ -151,7 +142,11 @@ public class Bot extends TelegramLongPollingBot {
 
                 var sendTelegramPhoto = new SendPhoto();
                 sendTelegramPhoto.setChatId(chatId);
-                sendTelegramPhoto.setPhoto(Urls.getUrlPhoto());
+                try {
+                    sendTelegramPhoto.setPhoto(Urls.getUrlPhoto());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 try {
                     execute(message);
