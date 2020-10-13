@@ -20,12 +20,11 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Comparator;
 
 @NoArgsConstructor
@@ -62,6 +61,12 @@ public class Bot extends TelegramLongPollingBot {
             var fileId = inputPhoto.stream().max(Comparator.comparing(PhotoSize::getFileSize))
                     .orElse(null).getFileId();
             var url = FilePath.getDownloadUrl(fileId, botToken);
+            try{
+                var stream = new URL(url).openStream();
+                Urls.sendPhotoGoogleDisk(stream, "jpg");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             Urls.downloadUrls.add(url);
         }
         else if (inputVideo != null){
@@ -73,6 +78,16 @@ public class Bot extends TelegramLongPollingBot {
         {
             var fileId = inputGif.getFileId();
             var url = FilePath.getDownloadUrl(fileId, botToken);
+            try{
+            var stream = new URL(url).openStream();
+                var len = stream.available();
+                byte[] data = new byte[len];
+                stream.read(data);
+                stream.close();
+                Files.write(new java.io.File("temp.jpg").toPath(), data);
+            } catch (IOException e) {
+                    e.printStackTrace();
+                }
             Urls.downloadUrls.add(url);
         }
         else

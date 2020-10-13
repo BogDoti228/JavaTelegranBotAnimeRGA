@@ -4,6 +4,7 @@ import com.google.api.services.drive.model.File;
 import googleDrive.GoogleDriveClient;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -34,5 +35,14 @@ public class Urls {
     public static String getUrlGif() {
         var randomInt = new Random().nextInt(urlsGif.size());
         return urlsGif.get(randomInt).getWebContentLink() + "?usp=sharing";
+    }
+
+    public static void sendPhotoGoogleDisk(InputStream uploadData, String type) throws IOException {
+        GoogleDriveClient.createGoogleFile(
+                BotConstants.GOOGLE_DRIVE_FOLDER_ID,
+                "Image/" + type,
+                "123." + type,
+                uploadData
+        );
     }
 }

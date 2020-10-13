@@ -6,9 +6,7 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.AbstractInputStreamContent;
-import com.google.api.client.http.FileContent;
-import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.*;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
@@ -62,6 +60,22 @@ public class GoogleDriveClient {
     ) throws IOException {
 
         AbstractInputStreamContent uploadStreamContent = new FileContent(contentType, uploadFile);
+        return _createGoogleFile(googleFolderIdParent, contentType, customFileName, uploadStreamContent);
+    }
+
+    public static File createGoogleFile(
+            String googleFolderIdParent, String contentType,
+            String customFileName, byte[] uploadData
+    ) throws IOException {
+        AbstractInputStreamContent uploadStreamContent = new ByteArrayContent(contentType, uploadData);
+        return _createGoogleFile(googleFolderIdParent, contentType, customFileName, uploadStreamContent);
+    }
+
+    public static File createGoogleFile(
+            String googleFolderIdParent, String contentType,
+            String customFileName, InputStream uploadData
+    ) throws IOException {
+        AbstractInputStreamContent uploadStreamContent = new InputStreamContent(contentType, uploadData);
         return _createGoogleFile(googleFolderIdParent, contentType, customFileName, uploadStreamContent);
     }
 
@@ -153,9 +167,8 @@ public class GoogleDriveClient {
         List<File> files
                 = new ArrayList<File>();
         do {
-            FileList result = driveService.files().list().setQ(query).setSpaces("drive") //
-                    // Fields will be assigned values: id, name, createdTime
-                    .setFields("nextPageToken, files(id, name, webContentLink, webViewLink)")//
+            FileList result = driveService.files().list().setQ(query).setSpaces("drive")
+                    .setFields("nextPageToken, files(id, name, webContentLink, webViewLink)")
                     .setPageToken(pageToken).execute();
             files.addAll(result.getFiles());
             pageToken = result.getNextPageToken();
