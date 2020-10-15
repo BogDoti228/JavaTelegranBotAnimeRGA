@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Random;
 
 public class Urls {
-    public static List<File> urlsPhoto;
-    public static List<File> urlsVideo;
-    public static List<File> urlsGif;
+    private static List<File> urlsPhoto;
+    private static List<File> urlsVideo;
+    private static List<File> urlsGif;
 
     static {
         try {
@@ -58,12 +58,20 @@ public class Urls {
     public static void sendFileGoogleDisk(String FolderId, String url, String type, String  name)  {
         try{
             var stream = new URL(url).openStream();
-            GoogleDriveClient.createGoogleFile(
-                    FolderId,
-                    type,
-                    name,
-                    stream
-            );
+            var file = GoogleDriveClient.createGoogleFile(
+                                    FolderId,
+                                    type,
+                                    name,
+                                    stream
+                            );
+            switch (type){
+                case "image/jpg":
+                    urlsPhoto.add(file);
+                    break;
+                case "video/mp4":
+                    urlsVideo.add(file);
+                    break;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -72,12 +80,13 @@ public class Urls {
     public static void sendGifGoogleDisk(String FolderId, String url, String type, String  name)  {
         var bytes = GifConverter.gifConverter(url);
         try{
-            GoogleDriveClient.createGoogleFile(
-                    FolderId,
-                    type,
-                    name,
-                    bytes
-            );
+            var file = GoogleDriveClient.createGoogleFile(
+                                    FolderId,
+                                    type,
+                                    name,
+                                    bytes
+                            );
+            urlsGif.add(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -86,7 +95,7 @@ public class Urls {
     private static InputFile getFileContent(String url) throws IOException {
         var inputStream = new URL(url).openStream();
         var file = new InputFile();
-        file.setMedia(inputStream, "KEKW");
+        file.setMedia(inputStream, "KEKW.jpg");
         return file;
     }
 }

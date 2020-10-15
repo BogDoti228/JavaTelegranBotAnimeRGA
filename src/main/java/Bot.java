@@ -1,29 +1,21 @@
 import commands.*;
-import googleDrive.GoogleDriveClient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.log4j.Logger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
-import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
-import it.grabz.grabzit.*;
 
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.file.Files;
 import java.util.Comparator;
 
 @NoArgsConstructor
@@ -61,17 +53,47 @@ public class Bot extends TelegramLongPollingBot {
                     .orElse(null).getFileId();
             var url = FilePath.getDownloadUrl(fileId, botToken);
             Urls.sendFileGoogleDisk(BotConstants.PHOTO_FOLDER_ID, url, "Image/jpg", "228.jpg");
+
+            var message = new SendMessage();
+            message.setChatId(chatId);
+            message.setText("Спасибо за вашу картинку!=)<3");
+
+            try {
+                execute(message);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
         }
         else if (inputVideo != null){
             var fileId = inputVideo.getFileId();
             var url = FilePath.getDownloadUrl(fileId, botToken);
             Urls.sendFileGoogleDisk(BotConstants.VIDEO_FOLDER_ID, url, "video/mp4", "1488.mp4");
+
+            var message = new SendMessage();
+            message.setChatId(chatId);
+            message.setText("Спасибо за ваше видео!=)<3");
+
+            try {
+                execute(message);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
         }
         else if (inputGif != null)
         {
             var fileId = inputGif.getFileId();
             var url = FilePath.getDownloadUrl(fileId, botToken);
-            Urls.sendGifGoogleDisk(BotConstants.GIF_FOLDER_ID, url, "video/gif", "1337.gif");
+            Urls.sendGifGoogleDisk(BotConstants.GIF_FOLDER_ID, url, "Image/gif", "1337.gif");
+
+            var message = new SendMessage();
+            message.setChatId(chatId);
+            message.setText("Спасибо за вашу гифку!=)<3");
+
+            try {
+                execute(message);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
         }
         else
         {
