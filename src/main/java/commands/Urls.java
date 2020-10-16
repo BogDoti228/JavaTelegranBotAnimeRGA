@@ -38,18 +38,18 @@ public class Urls {
         }
     }
 
-    public static InputFile getUrlPhoto() throws IOException {
+    public static InputFile getInputPhoto() throws IOException {
         var randomInt = new Random().nextInt(urlsPhoto.size());
         var url = urlsPhoto.get(randomInt).getWebContentLink();
         return getFileContent(url);
     }
 
-    public static InputFile getUrlVideo() throws IOException {
+    public static InputFile getInputVideo() throws IOException {
         var randomInt = new Random().nextInt(urlsVideo.size());
         var url = urlsVideo.get(randomInt).getWebContentLink();
         return getFileContent(url);
     }
-    public static InputFile getUrlGif() throws IOException {
+    public static InputFile getInputGif() throws IOException {
         var randomInt = new Random().nextInt(urlsGif.size());
         var url = urlsGif.get(randomInt).getWebContentLink();
         return getFileContent(url);

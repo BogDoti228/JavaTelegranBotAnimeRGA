@@ -2,6 +2,6 @@ package commands;
 
 public enum Command {
     START, PHOTO,
-    HELP,
+    HELP, REPORT, TEXT_REPORT,
     UNKNOWN, VIDEO, GIF
 }

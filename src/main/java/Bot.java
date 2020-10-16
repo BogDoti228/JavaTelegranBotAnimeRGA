@@ -13,6 +13,9 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
+import overseersModule.InfoController;
+import overseersModule.ModeratorController;
+import overseersModule.ReportBuilder;
 
 
 import java.io.*;
@@ -58,6 +61,8 @@ public class Bot extends TelegramLongPollingBot {
             message.setChatId(chatId);
             message.setText("Спасибо за вашу картинку!=)<3");
 
+            InfoController.addLastCommand(chatId, Command.UNKNOWN);
+
             try {
                 execute(message);
             } catch (TelegramApiException e) {
@@ -73,6 +78,7 @@ public class Bot extends TelegramLongPollingBot {
             message.setChatId(chatId);
             message.setText("Спасибо за ваше видео!=)<3");
 
+            InfoController.addLastCommand(chatId, Command.UNKNOWN);
             try {
                 execute(message);
             } catch (TelegramApiException e) {
@@ -89,6 +95,8 @@ public class Bot extends TelegramLongPollingBot {
             message.setChatId(chatId);
             message.setText("Спасибо за вашу гифку!=)<3");
 
+            InfoController.addLastCommand(chatId, Command.UNKNOWN);
+
             try {
                 execute(message);
             } catch (TelegramApiException e) {
@@ -97,112 +105,121 @@ public class Bot extends TelegramLongPollingBot {
         }
         else
         {
-            var command = parser.Parse(inputText);
+            var command = parser.Parse(inputText, chatId);
+
+            var message = new SendMessage();
+            message.setChatId(chatId);
 
             if (command == Command.START) {
-                var message = new SendMessage();
-                message.setChatId(chatId);
-                message.setText("Привет всем ползьующимся этим ботом=)\n+" +
+                message.setText("Привет всем ползьующимся этим ботом=)\n" +
                         " напиши /photo чтобы получить фото\n " +
                         " напиши /video чтобы получить видео\n " +
                         " напиши /gif чтобы получить гифку\n " +
+                        " напиши /report чтобы пожаловаться на файл\n " +
                         " фото, видео, гиф можно кидать боту для пополнения базы данных," +
                         " кидайте все что сочтете достойным для нас," +
                         " всем очень благодарны за использование=)");
 
-                try {
-                    execute(message);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
+                InfoController.addLastCommand(chatId, Command.START);
             }
             else if (command == Command.VIDEO) {
-                var message = new SendMessage();
-                message.setChatId(chatId);
                 message.setText("Вот ваше видео, удачного дня");
 
                 var sendTelegramVideo = new SendVideo();
                 sendTelegramVideo.setChatId(chatId);
                 try {
-                    sendTelegramVideo.setVideo(Urls.getUrlVideo());
+                    var inputFile = Urls.getInputVideo();
+                    InfoController.addLastInputFile(chatId, inputFile);
+                    sendTelegramVideo.setVideo(inputFile);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
                 try {
-                    execute(message);
                     execute(sendTelegramVideo);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
             }
             else if (command == Command.GIF) {
-                var message = new SendMessage();
-                message.setChatId(chatId);
                 message.setText("Вот ваша гифка, удачного дня");
 
 
                 var sendTelegramAnimation = new SendAnimation();
                 sendTelegramAnimation.setChatId(chatId);
                 try {
-                    sendTelegramAnimation.setAnimation(Urls.getUrlGif());
+                    var inputFile = Urls.getInputGif();
+                    InfoController.addLastInputFile(chatId, inputFile);
+                    sendTelegramAnimation.setAnimation(inputFile);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
                 try {
-                    execute(message);
                     execute(sendTelegramAnimation);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
             }
             else if (command == Command.PHOTO) {
-                var message = new SendMessage();
-                message.setChatId(chatId);
                 message.setText("Вот ваша фотография, удачного дня");
 
                 var sendTelegramPhoto = new SendPhoto();
                 sendTelegramPhoto.setChatId(chatId);
                 try {
-                    sendTelegramPhoto.setPhoto(Urls.getUrlPhoto());
+                    var inputFile = Urls.getInputPhoto();
+                    InfoController.addLastInputFile(chatId, inputFile);
+                    sendTelegramPhoto.setPhoto(inputFile);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
                 try {
-                    execute(message);
                     execute(sendTelegramPhoto);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
             }
             else if (command == Command.HELP) {
-                var message = new SendMessage();
-                message.setChatId(chatId);
-                message.setText("/photo - запросить фото\n /video - запросить видео\n" +
+                message.setText("/photo - запросить фото\n " +
+                        "/video - запросить видео\n" +
                         " /gif - запросить гифку \n " +
+                        " /report - пожаловаться \n " +
                         "можете кидать любую фотку гиф или видео" +
                         " - все сохраним, поплняйте нашу базу " +
                         "- все будут круче и всего будет больше=)");
 
-                try {
-                    execute(message);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
+                InfoController.addLastCommand(chatId, Command.HELP);
+            }
+            else if (command == Command.REPORT)
+            {
+                if (InfoController.isExistInputFile(chatId)){
+                    message.setText("Укажите причину репорта");
+                    ReportBuilder.addReportedInputFile(chatId, InfoController.getLastInputFile(chatId));
+                    InfoController.addLastCommand(chatId, Command.REPORT);
                 }
+                else {
+                    message.setText("Для начала получите файл, чтобы была возможность кинуть репорт!");
+                    InfoController.addLastCommand(chatId, Command.UNKNOWN);
+                }
+            }
+            else if (command == Command.TEXT_REPORT) {
+                message.setText("Спасибо за ваш репорт, модераторы скоро проверят его!=)");
+                ReportBuilder.addReportText(chatId, inputText);
+                ReportBuilder.createReport(chatId);
+                InfoController.addLastCommand(chatId, Command.UNKNOWN);
             }
             else if (command == Command.UNKNOWN)
             {
-                var message = new SendMessage();
-                message.setChatId(chatId);
                 message.setText("Нет такой команды");
 
-                try {
-                    execute(message);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
+                InfoController.addLastCommand(chatId, Command.UNKNOWN);
+            }
+
+            try {
+                execute(message);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
             }
         }
     }
