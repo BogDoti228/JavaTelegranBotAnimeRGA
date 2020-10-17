@@ -4,9 +4,10 @@ public class QueryCreator {
     public static String createQuery(String name, String mimeType, String parrentId)
     {
         StringBuilder builder = new StringBuilder();
+        builder.append("trashed=false ");
         if (name != null)
         {
-            builder.append("name = '").append(name).append("' ");
+            builder.append("and name = '").append(name).append("' ");
         }
         if (mimeType != null)
         {

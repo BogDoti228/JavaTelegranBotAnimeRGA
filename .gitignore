@@ -7,6 +7,9 @@
 #logs
 *.log
 
+#iml files
+*.iml
+
 #privateInfo
 /credentials/
 BotConstants.java
