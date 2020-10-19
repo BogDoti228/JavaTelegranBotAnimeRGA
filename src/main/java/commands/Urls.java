@@ -3,6 +3,7 @@ package commands;
 import com.google.api.services.drive.model.File;
 import googleDrive.GoogleDriveClient;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
+import overseersModule.InfoController;
 import tagsConroller.InputParser;
 import tagsConroller.NameCreator;
 import tagsConroller.NameParser;
@@ -45,7 +46,7 @@ public class Urls {
         }
     }
 
-    public static InputFile getFile(ContentType type, String tagsQuery) throws Exception {
+    public static InputFile getFile(ContentType type, String tagsQuery, Long chatId) throws Exception {
         List<File> files;
         switch (type) {
             case GIF:
@@ -76,6 +77,8 @@ public class Urls {
             return null;
         var randomInt = new Random().nextInt(relevantFiles.size());
         var randomFile = relevantFiles.get(randomInt);
+        var url = randomFile.getWebContentLink();
+        InfoController.addLastInputFile(chatId, url, type);
         return getFileContent(randomFile.getWebContentLink(), type);
     }
 
@@ -110,7 +113,7 @@ public class Urls {
         }
     }
 
-    private static InputFile getFileContent(String url, ContentType type) throws IOException {
+    public static InputFile getFileContent(String url, ContentType type) throws IOException {
         var inputStream = new URL(url).openStream();
         String format = null;
         switch (type){

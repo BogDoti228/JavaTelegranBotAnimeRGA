@@ -2,10 +2,8 @@ package commands;
 
 import org.apache.log4j.Logger;
 import org.javatuples.Pair;
-import org.javatuples.Tuple;
 import overseersModule.InfoController;
 
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +16,10 @@ public class Parser {
         put(Command.GIF, "/gif");
         put(Command.VIDEO, "/video");
         put(Command.REPORT, "/report");
+        put(Command.CHECK_REPORTS, "/check_reports");
+        put(Command.CLOSE, "/close");
+        put(Command.NEXT, "/next");
+        put(Command.DELETE, "/delete");
     }};
 
     public static Pair<Command, String> Parse(String input, Long chatId) {

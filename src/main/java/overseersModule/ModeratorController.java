@@ -1,6 +1,8 @@
 package overseersModule;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ModeratorController {
     private static final ArrayList<Long> moderatorsList = new ArrayList<>(){{
@@ -8,7 +10,24 @@ public class ModeratorController {
     }
     };
 
+    private static final Map<Long, Boolean> moderatorsInCheckMode = new HashMap<>(){{
+        put((long) 364198280, false);
+    }};
+
+
     public static Boolean isUserModerator(Long user){
         return moderatorsList.contains(user);
+    }
+
+    public static void openCheckMode(Long user){
+        moderatorsInCheckMode.put(user, true);
+    }
+
+    public static void closeCheckMode(Long user){
+        moderatorsInCheckMode.put(user, false);
+    }
+
+    public static Boolean isModeratorInCheckMode(Long user){
+        return moderatorsInCheckMode.get(user);
     }
 }

@@ -1,18 +1,20 @@
 package overseersModule;
 
 import commands.Command;
+import commands.ContentType;
+import org.javatuples.Pair;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class InfoController {
-    private static Map<Long, InputFile> mapDataIdInputFiles = new HashMap<>();
+    private static Map<Long, Pair<String, ContentType>> mapDataIdInputFiles = new HashMap<>();
     private static Map<Long, Command> mapDataIdCommands = new HashMap<>();
 
-    public static void addLastInputFile(Long chatId, InputFile inputFile)
+    public static void addLastInputFile(Long chatId, String inputFile, ContentType type)
     {
-        mapDataIdInputFiles.put(chatId, inputFile);
+        mapDataIdInputFiles.put(chatId, Pair.with(inputFile, type));
         mapDataIdCommands.remove(chatId);
     }
 
@@ -30,7 +32,7 @@ public class InfoController {
         return mapDataIdCommands.get(chatId) == Command.REPORT;
     }
 
-    public static InputFile getLastInputFile(Long chatId){
+    public static Pair<String, ContentType> getLastInputFile(Long chatId){
         return mapDataIdInputFiles.get(chatId);
     }
 }
