@@ -1,3 +1,4 @@
+import commands.BotConstants;
 import commands.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import overseersModule.InfoController;
-import overseersModule.ModeratorController;
 import overseersModule.ReportBuilder;
 
 
@@ -24,7 +24,26 @@ import java.util.Comparator;
 @NoArgsConstructor
 public class Bot extends TelegramLongPollingBot {
     private static final Logger log = Logger.getLogger(Bot.class);
-    private static  Parser parser = new Parser();
+    private static final String helpText =
+            "/photo - запросить фото\n" +
+            "/video  - запросить видео\n" +
+            "/gif - запросить гифку \n" +
+            "/report - пожаловаться \n" +
+            "можете кидать любую фотку гиф или видео" +
+            " - все сохраним, поплняйте нашу базу " +
+            "- все будут круче и всего будет больше=)";
+
+    private static final String startText = "Привет всем ползьующимся этим ботом=)\n" +
+            " напиши /photo чтобы получить фото\n " +
+            " напиши /photo tag1 tag2 чтобы получить фото с тегами tag1 и tag2\n " +
+            " напиши /photo чтобы получить фото\n " +
+            " напиши /video чтобы получить видео\n " +
+            " напиши /gif чтобы получить гифку\n " +
+            " напиши /report чтобы пожаловаться на файл\n " +
+            " фото, видео, гиф можно кидать боту для пополнения базы данных," +
+            " кидайте все что сочтете достойным для нас," +
+            " всем очень благодарны за использование=)";
+
     final int RECONNECT_PAUSE = 10000;
 
     @Setter
@@ -41,6 +60,7 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        System.out.println("Я въезжаю в стройку");
         log.debug("Receive new Update. updateID: " + update.getUpdateId());
 
         Long chatId = update.getMessage().getChatId();
@@ -49,13 +69,14 @@ public class Bot extends TelegramLongPollingBot {
         var inputPhoto = update.getMessage().getPhoto();
         var inputVideo = update.getMessage().getVideo();
         var inputGif = update.getMessage().getAnimation();
+        var inputCaption = update.getMessage().getCaption();
 
         if (inputPhoto != null && !inputPhoto.isEmpty())
         {
             var fileId = inputPhoto.stream().max(Comparator.comparing(PhotoSize::getFileSize))
                     .orElse(null).getFileId();
             var url = FilePath.getDownloadUrl(fileId, botToken);
-            Urls.sendFileGoogleDisk(BotConstants.PHOTO_FOLDER_ID, url, "Image/jpg", "228.jpg");
+            Urls.sendFileGoogleDisk(BotConstants.PHOTO_FOLDER_ID, url, ContentType.PHOTO, inputCaption);
 
             var message = new SendMessage();
             message.setChatId(chatId);
@@ -72,7 +93,7 @@ public class Bot extends TelegramLongPollingBot {
         else if (inputVideo != null){
             var fileId = inputVideo.getFileId();
             var url = FilePath.getDownloadUrl(fileId, botToken);
-            Urls.sendFileGoogleDisk(BotConstants.VIDEO_FOLDER_ID, url, "video/mp4", "1488.mp4");
+            Urls.sendFileGoogleDisk(BotConstants.VIDEO_FOLDER_ID, url, ContentType.VIDEO, inputCaption);
 
             var message = new SendMessage();
             message.setChatId(chatId);
@@ -85,11 +106,10 @@ public class Bot extends TelegramLongPollingBot {
                 e.printStackTrace();
             }
         }
-        else if (inputGif != null)
-        {
+        else if (inputGif != null){
             var fileId = inputGif.getFileId();
             var url = FilePath.getDownloadUrl(fileId, botToken);
-            Urls.sendGifGoogleDisk(BotConstants.GIF_FOLDER_ID, url, "Image/gif", "1337.gif");
+            Urls.sendFileGoogleDisk(BotConstants.GIF_FOLDER_ID, url, ContentType.GIF, inputCaption);
 
             var message = new SendMessage();
             message.setChatId(chatId);
@@ -105,90 +125,71 @@ public class Bot extends TelegramLongPollingBot {
         }
         else
         {
-            var command = parser.Parse(inputText, chatId);
+            var parsedInputText = Parser.Parse(inputText, chatId);
+            var command = parsedInputText.getValue0();
+            var commandParameters = parsedInputText.getValue1();
 
             var message = new SendMessage();
             message.setChatId(chatId);
 
             if (command == Command.START) {
-                message.setText("Привет всем ползьующимся этим ботом=)\n" +
-                        " напиши /photo чтобы получить фото\n " +
-                        " напиши /video чтобы получить видео\n " +
-                        " напиши /gif чтобы получить гифку\n " +
-                        " напиши /report чтобы пожаловаться на файл\n " +
-                        " фото, видео, гиф можно кидать боту для пополнения базы данных," +
-                        " кидайте все что сочтете достойным для нас," +
-                        " всем очень благодарны за использование=)");
+                message.setText(startText);
 
                 InfoController.addLastCommand(chatId, Command.START);
             }
             else if (command == Command.VIDEO) {
-                message.setText("Вот ваше видео, удачного дня");
-
                 var sendTelegramVideo = new SendVideo();
                 sendTelegramVideo.setChatId(chatId);
                 try {
-                    var inputFile = Urls.getInputVideo();
-                    InfoController.addLastInputFile(chatId, inputFile);
-                    sendTelegramVideo.setVideo(inputFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                try {
-                    execute(sendTelegramVideo);
-                } catch (TelegramApiException e) {
+                    var inputFile = Urls.getFile(ContentType.VIDEO, commandParameters);
+                    if (inputFile != null) {
+                        InfoController.addLastInputFile(chatId, inputFile);
+                        sendTelegramVideo.setVideo(inputFile);
+                        execute(sendTelegramVideo);
+                        message.setText("Вот ваше видео, удачного дня");
+                    } else {
+                        message.setText("К сожалению, подобный контент не был найден");
+                    }
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
             else if (command == Command.GIF) {
-                message.setText("Вот ваша гифка, удачного дня");
-
-
                 var sendTelegramAnimation = new SendAnimation();
                 sendTelegramAnimation.setChatId(chatId);
                 try {
-                    var inputFile = Urls.getInputGif();
-                    InfoController.addLastInputFile(chatId, inputFile);
-                    sendTelegramAnimation.setAnimation(inputFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                try {
-                    execute(sendTelegramAnimation);
-                } catch (TelegramApiException e) {
+                    var inputFile = Urls.getFile(ContentType.GIF, commandParameters);
+                    if (inputFile != null) {
+                        InfoController.addLastInputFile(chatId, inputFile);
+                        sendTelegramAnimation.setAnimation(inputFile);
+                        execute(sendTelegramAnimation);
+                        message.setText("Вот ваша гифка, удачного дня");
+                    } else {
+                        message.setText("К сожалению, подобный контент не был найден");
+                    }
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
             else if (command == Command.PHOTO) {
-                message.setText("Вот ваша фотография, удачного дня");
-
                 var sendTelegramPhoto = new SendPhoto();
                 sendTelegramPhoto.setChatId(chatId);
                 try {
-                    var inputFile = Urls.getInputPhoto();
-                    InfoController.addLastInputFile(chatId, inputFile);
-                    sendTelegramPhoto.setPhoto(inputFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                try {
-                    execute(sendTelegramPhoto);
-                } catch (TelegramApiException e) {
+                    var inputFile = Urls.getFile(ContentType.PHOTO, commandParameters);
+                    if (inputFile != null) {
+                        InfoController.addLastInputFile(chatId, inputFile);
+                        sendTelegramPhoto.setPhoto(inputFile);
+                        execute(sendTelegramPhoto);
+                        message.setText("Вот ваша фотография, удачного дня");
+                    } else {
+                        message.setText("К сожалению, подобный контент не был найден");
+                    }
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
             else if (command == Command.HELP) {
-                message.setText("/photo - запросить фото\n " +
-                        "/video - запросить видео\n" +
-                        " /gif - запросить гифку \n " +
-                        " /report - пожаловаться \n " +
-                        "можете кидать любую фотку гиф или видео" +
-                        " - все сохраним, поплняйте нашу базу " +
-                        "- все будут круче и всего будет больше=)");
-
+                message.setText(helpText);
                 InfoController.addLastCommand(chatId, Command.HELP);
             }
             else if (command == Command.REPORT)
@@ -212,7 +213,6 @@ public class Bot extends TelegramLongPollingBot {
             else if (command == Command.UNKNOWN)
             {
                 message.setText("Нет такой команды");
-
                 InfoController.addLastCommand(chatId, Command.UNKNOWN);
             }
 

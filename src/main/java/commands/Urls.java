@@ -3,9 +3,16 @@ package commands;
 import com.google.api.services.drive.model.File;
 import googleDrive.GoogleDriveClient;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
+import tagsConroller.InputParser;
+import tagsConroller.NameCreator;
+import tagsConroller.NameParser;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -38,64 +45,97 @@ public class Urls {
         }
     }
 
-    public static InputFile getInputPhoto() throws IOException {
-        var randomInt = new Random().nextInt(urlsPhoto.size());
-        var url = urlsPhoto.get(randomInt).getWebContentLink();
-        return getFileContent(url);
+    public static InputFile getFile(ContentType type, String tagsQuery) throws Exception {
+        List<File> files;
+        switch (type) {
+            case GIF:
+                files = urlsGif;
+                break;
+            case PHOTO:
+                files = urlsPhoto;
+                break;
+            case VIDEO:
+                files = urlsVideo;
+                break;
+            default:
+                files = new ArrayList<>();
+        }
+        String[] necessaryTags;
+        if (tagsQuery == null)
+            necessaryTags = new String[0];
+        else
+            necessaryTags = InputParser.parseTags(tagsQuery);
+        ArrayList<File> relevantFiles = new ArrayList<File>();
+        for (File file: files){
+            var fileTags = NameParser.parseTags(file.getName());
+            if (Arrays.stream(necessaryTags)
+                    .allMatch((x) -> Arrays.asList(fileTags).contains(x)))
+                relevantFiles.add(file);
+        }
+        if (relevantFiles.size() == 0)
+            return null;
+        var randomInt = new Random().nextInt(relevantFiles.size());
+        var randomFile = relevantFiles.get(randomInt);
+        return getFileContent(randomFile.getWebContentLink(), type);
     }
 
-    public static InputFile getInputVideo() throws IOException {
-        var randomInt = new Random().nextInt(urlsVideo.size());
-        var url = urlsVideo.get(randomInt).getWebContentLink();
-        return getFileContent(url);
-    }
-    public static InputFile getInputGif() throws IOException {
-        var randomInt = new Random().nextInt(urlsGif.size());
-        var url = urlsGif.get(randomInt).getWebContentLink();
-        return getFileContent(url);
-    }
 
-    public static void sendFileGoogleDisk(String FolderId, String url, String type, String  name)  {
+    public static void sendFileGoogleDisk(String FolderId, String url, ContentType type, String caption)  {
         try{
-            var stream = new URL(url).openStream();
+            var name = NameCreator.createNameWithTags(caption);
+            InputStream stream;
+            if (type == ContentType.GIF)
+                stream = new ByteArrayInputStream(GifConverter.gifConverter(url));
+            else
+                stream = new URL(url).openStream();
             var file = GoogleDriveClient.createGoogleFile(
                                     FolderId,
-                                    type,
+                                    getGoogleDriveType(type),
                                     name,
                                     stream
                             );
             switch (type){
-                case "image/jpg":
+                case PHOTO:
                     urlsPhoto.add(file);
                     break;
-                case "video/mp4":
+                case GIF:
+                    urlsGif.add(file);
+                    break;
+                case VIDEO:
                     urlsVideo.add(file);
                     break;
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void sendGifGoogleDisk(String FolderId, String url, String type, String  name)  {
-        var bytes = GifConverter.gifConverter(url);
-        try{
-            var file = GoogleDriveClient.createGoogleFile(
-                                    FolderId,
-                                    type,
-                                    name,
-                                    bytes
-                            );
-            urlsGif.add(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static InputFile getFileContent(String url) throws IOException {
+    private static InputFile getFileContent(String url, ContentType type) throws IOException {
         var inputStream = new URL(url).openStream();
+        String format = null;
+        switch (type){
+            case GIF:
+                format = "gif";
+            case VIDEO:
+                format = "mp4";
+            case PHOTO:
+                format = "jpg";
+        }
         var file = new InputFile();
-        file.setMedia(inputStream, "KEKW.jpg");
+        file.setMedia(inputStream, "KEKW." + format);
         return file;
+    }
+
+    private static String getGoogleDriveType(ContentType type) throws Exception {
+        switch (type){
+            case PHOTO:
+                return "image/jpg";
+            case GIF:
+                return "image/gif";
+            case VIDEO:
+                return "video/mp4";
+            default:
+                throw new Exception("unknown type");
+        }
     }
 }

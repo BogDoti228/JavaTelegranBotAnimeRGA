@@ -1,5 +1,7 @@
 package googleDrive;
 
+import java.util.Objects;
+
 public class QueryCreator {
     public static String createQuery(String name, String mimeType, String parrentId)
     {
@@ -11,27 +13,9 @@ public class QueryCreator {
         }
         if (mimeType != null)
         {
-            if (shouldAddAnd(builder))
-                builder.append("and ");
-            builder.append("mimeType = '").append(mimeType).append("' ");
+            builder.append("and mimeType = '").append(mimeType).append("' ");
         }
-        if (parrentId != null)
-        {
-            if (shouldAddAnd(builder))
-                builder.append("and ");
-            builder.append('\'').append(parrentId).append("' in parents");
-        }
-        else
-        {
-            if (shouldAddAnd(builder))
-                builder.append("and ");
-            builder.append('\'').append("root").append("' in parents");
-        }
+        builder.append("and '").append(Objects.requireNonNullElse(parrentId, "root")).append("' in parents");
         return builder.toString();
-    }
-
-    private static boolean shouldAddAnd(StringBuilder current)
-    {
-        return current.length() != 0;
     }
 }
