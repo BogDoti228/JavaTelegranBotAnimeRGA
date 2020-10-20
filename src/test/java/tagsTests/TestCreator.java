@@ -83,6 +83,27 @@ public class TestCreator {
     }
 
     @Test
+    public void testReturnedValueOnLowerCase(){
+        var str = "Hello WORLD";
+        var expected = "hello_world";
+        Assert.assertEquals(
+                expected,
+                NameCreator.createNameWithTags(str)
+        );
+    }
+
+
+    @Test
+    public void testIgnoreExtraSpaces(){
+        var str = "hello     world";
+        var expected = "hello_world";
+        Assert.assertEquals(
+                expected,
+                NameCreator.createNameWithTags(str)
+        );
+    }
+
+    @Test
     public void testUltraHardDifficultyOmegaHardSituation() {
         var str = "he11lo_world,+=123   abc;length";
         var expected = "123_abc_he11lo__world_length";

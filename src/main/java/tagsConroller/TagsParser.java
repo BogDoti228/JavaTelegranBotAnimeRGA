@@ -7,9 +7,11 @@ public class TagsParser {
     private static final Pattern inputParsePattern = Pattern.compile("[a-zA-Z0-9а-яА-ЯёЁ_]+");
 
     public static String[] parseTagsFromFileName(String name) {
+        name = name.toLowerCase();
         var tagBuilder = new StringBuilder();
         var tags = new ArrayList<String>();
-        loop1 :for (var i = 0; i < name.length(); i++) {
+        loop1:
+        for (var i = 0; i < name.length(); i++) {
             switch (name.charAt(i)) {
                 case '_': {
                     if (name.charAt(i + 1) == '_') {
@@ -19,6 +21,7 @@ public class TagsParser {
                         tags.add(tagBuilder.toString());
                         tagBuilder.setLength(0);
                     }
+                    break;
                 }
                 case '.':
                     break loop1;
@@ -35,7 +38,7 @@ public class TagsParser {
         var result = new ArrayList<String>();
         var matcher = inputParsePattern.matcher(input);
         while (matcher.find()) {
-            result.add(matcher.group());
+            result.add(matcher.group().toLowerCase());
         }
         return result.toArray(String[]::new);
     }

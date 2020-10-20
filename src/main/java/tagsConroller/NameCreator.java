@@ -4,10 +4,11 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public class NameCreator {
-    public static final String defaultName = "defaultName";
+    public static final String defaultName = "defaultname";
 
     //inputExamples
     //hello world -> hello_world
+    //HELLO WORLD -> hello_world (to lower case)
     //#hello,  world!... -> hello_world (ignore non letters)
     //he11o w0r1d -> he11o_w0r1d (not ignore numbers)
     //world hello -> hello_world (lexis order)
@@ -17,6 +18,7 @@ public class NameCreator {
     public static String createNameWithTags(String inputQuery) {
         if (inputQuery == null)
             return defaultName;
+        inputQuery = inputQuery.toLowerCase();
         var tags = TagsParser.parseTagsFromInputQuery(inputQuery);
         if (tags.length == 0)
             return defaultName;
@@ -28,10 +30,16 @@ public class NameCreator {
         var builder = new StringBuilder();
         for (int i = 0; i < tags.length; i++) {
             for (var symbol : tags[i].toCharArray()) {
-                if (symbol == '_')
-                    builder.append("__");
-                else
-                    builder.append(symbol);
+                switch (symbol) {
+                    case '_':
+                        builder.append("__");
+                        break;
+                    case ' ':
+                        continue;
+                    default:
+                        builder.append(symbol);
+                        break;
+                }
             }
             if (i + 1 < tags.length)
                 builder.append("_");
