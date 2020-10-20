@@ -4,9 +4,8 @@ import com.google.api.services.drive.model.File;
 import googleDrive.GoogleDriveClient;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import overseersModule.InfoController;
-import tagsConroller.InputParser;
 import tagsConroller.NameCreator;
-import tagsConroller.NameParser;
+import tagsConroller.TagsParser;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -65,10 +64,10 @@ public class Urls {
         if (tagsQuery == null)
             necessaryTags = new String[0];
         else
-            necessaryTags = InputParser.parseTags(tagsQuery);
-        ArrayList<File> relevantFiles = new ArrayList<File>();
+            necessaryTags = TagsParser.parseTagsFromInputQuery(tagsQuery);
+        ArrayList<File> relevantFiles = new ArrayList<>();
         for (File file: files){
-            var fileTags = NameParser.parseTags(file.getName());
+            var fileTags = TagsParser.parseTagsFromFileName(file.getName());
             if (Arrays.stream(necessaryTags)
                     .allMatch((x) -> Arrays.asList(fileTags).contains(x)))
                 relevantFiles.add(file);

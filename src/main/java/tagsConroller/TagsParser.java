@@ -1,14 +1,15 @@
 package tagsConroller;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
-public class NameParser {
-    public static String[] parseTags(String name) {
+public class TagsParser {
+    private static final Pattern inputParsePattern = Pattern.compile("[a-zA-Z0-9а-яА-ЯёЁ_]+");
+
+    public static String[] parseTagsFromFileName(String name) {
         var tagBuilder = new StringBuilder();
         var tags = new ArrayList<String>();
-        loop: for (var i = 0; i < name.length(); i++) {
+        loop1 :for (var i = 0; i < name.length(); i++) {
             switch (name.charAt(i)) {
                 case '_': {
                     if (name.charAt(i + 1) == '_') {
@@ -18,17 +19,24 @@ public class NameParser {
                         tags.add(tagBuilder.toString());
                         tagBuilder.setLength(0);
                     }
-                    break;
                 }
                 case '.':
-                    break loop;
+                    break loop1;
                 default:
                     tagBuilder.append(name.charAt(i));
-                    break;
             }
         }
         if (tagBuilder.length() != 0)
             tags.add(tagBuilder.toString());
         return tags.stream().distinct().toArray(String[]::new);
+    }
+
+    public static String[] parseTagsFromInputQuery(String input) {
+        var result = new ArrayList<String>();
+        var matcher = inputParsePattern.matcher(input);
+        while (matcher.find()) {
+            result.add(matcher.group());
+        }
+        return result.toArray(String[]::new);
     }
 }

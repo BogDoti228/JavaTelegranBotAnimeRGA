@@ -112,6 +112,14 @@ public class GoogleDriveClient {
         return getFilesByQuery(query);
     }
 
+    public static void deleteFile(String fileId){
+        try {
+            _driveService.files().delete(fileId).execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static Drive getDriveService() throws IOException {
         if (_driveService == null) {
             throw new IOException("Client not initialized");
@@ -156,7 +164,7 @@ public class GoogleDriveClient {
 
         File file =
                 driveService.files().create(fileMetadata, uploadStreamContent)
-                .setFields("id, mimeType, webContentLink, webViewLink, parents").execute();
+                .setFields("id, mimeType, webContentLink, webViewLink, parents, name").execute();
 
         return file;
     }

@@ -7,11 +7,13 @@ import java.util.Map;
 public class ModeratorController {
     private static final ArrayList<Long> moderatorsList = new ArrayList<>(){{
         add((long) 364198280);
+        add((long) 341332628);
     }
     };
 
     private static final Map<Long, Boolean> moderatorsInCheckMode = new HashMap<>(){{
         put((long) 364198280, false);
+        put((long) 341332628, false);
     }};
 
 

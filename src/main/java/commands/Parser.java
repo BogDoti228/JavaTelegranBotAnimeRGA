@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class Parser {
     private static final Logger log = Logger.getLogger(Parser.class);
-    private static final Map<Command, String> dict = new HashMap<>(){{
+    private static final Map<Command, String> commandsDict = new HashMap<>(){{
         put(Command.START, "/start");
         put(Command.HELP, "/help");
         put(Command.PHOTO, "/photo");
@@ -23,13 +23,12 @@ public class Parser {
     }};
 
     public static Pair<Command, String> Parse(String input, Long chatId) {
-        Pair<Command, String> result = new Pair<>(null, null);
         if (InfoController.isLastCommandReport(chatId)){
-            return new Pair<>(Command.TEXT_REPORT, "");
+            return new Pair<>(Command.TEXT_REPORT, input);
         }
-        for (var command: dict.keySet()){
-            if (input.startsWith(dict.get(command))) {
-                var parameters = input.substring(dict.get(command).length());
+        for (var command: commandsDict.keySet()){
+            if (input.startsWith(commandsDict.get(command))) {
+                var parameters = input.substring(commandsDict.get(command).length());
                 return new Pair<>(command, parameters);
             }
         }

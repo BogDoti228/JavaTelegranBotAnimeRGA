@@ -14,8 +14,10 @@ public class NameCreator {
     //hello wor_ld -> hello_wor__ld (doubling underlines)
     //_hello_ -> error (not accept underlines at the beginning or at the end of tag)
     //hello hello world -> hello_world
-    public static String createNameWithTags(String inputString) {
-        var tags = InputParser.parseTags(inputString);
+    public static String createNameWithTags(String inputQuery) {
+        if (inputQuery == null)
+            return defaultName;
+        var tags = TagsParser.parseTagsFromInputQuery(inputQuery);
         if (tags.length == 0)
             return defaultName;
         Arrays.sort(tags);
