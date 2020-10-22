@@ -24,8 +24,8 @@ import java.util.Comparator;
 
 @NoArgsConstructor
 public class Bot extends TelegramLongPollingBot {
-    private static final Logger log = Logger.getLogger(Bot.class);
-    private static final String helpText =
+    private final Logger log = Logger.getLogger(Bot.class);
+    private final String helpText =
             "/photo - запросить фото\n" +
             "/video  - запросить видео\n" +
             "/gif - запросить гифку \n" +
@@ -34,7 +34,7 @@ public class Bot extends TelegramLongPollingBot {
             " - все сохраним, поплняйте нашу базу " +
             "- все будут круче и всего будет больше=)";
 
-    private static final String startText = "Привет всем ползьующимся этим ботом=)\n" +
+    private final String startText = "Привет всем ползьующимся этим ботом=)\n" +
             " напиши /photo чтобы получить фото\n " +
             " напиши /photo tag1 tag2 чтобы получить фото с тегами tag1 и tag2\n " +
             " напиши /photo чтобы получить фото\n " +
@@ -81,7 +81,7 @@ public class Bot extends TelegramLongPollingBot {
             }
         }
     }
-    
+
     @Override
     public void onUpdateReceived(Update update) {
         log.debug("Receive new Update. updateID: " + update.getUpdateId());
@@ -94,13 +94,14 @@ public class Bot extends TelegramLongPollingBot {
         var inputGif = update.getMessage().getAnimation();
         var inputCaption = update.getMessage().getCaption();
 
-        if (ModeratorController.isUserModerator(chatId) && ModeratorController.isModeratorInCheckMode(chatId)){
+        if (ModeratorController.MODERATOR_CONTROLLER.isUserModerator(chatId)
+                && ModeratorController.MODERATOR_CONTROLLER.isModeratorInCheckMode(chatId)){
             if (inputPhoto != null || inputVideo != null || inputGif != null){
                 var message = new SendMessage();
                 message.setChatId(chatId);
                 message.setText("Зачем вы это кидаете в режиме проверки репортов?\n Используйте только /next, /delete, /close!!!");
 
-                InfoController.addLastCommand(chatId, Command.UNKNOWN);
+                InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.UNKNOWN);
 
                 try {
                     execute(message);
@@ -110,21 +111,38 @@ public class Bot extends TelegramLongPollingBot {
             }
             else
             {
-                var parsedInputText = Parser.Parse(inputText, chatId);
+                var parsedInputText = Parser.PARSER.Parse(inputText, chatId);
                 var command = parsedInputText.getValue0();
 
                 var message = new SendMessage();
                 message.setChatId(chatId);
 
                 if (command == Command.DELETE){
-                    message.setText("Вы успешно удалили фотку!=)");
+                    if (ReportBuilder.REPORT_BUILDER.isNoReports()) {
+                        message.setText("Нечего удалять, репорты уже закончены");
+                    }
+                    else {
+                        if(ReportBuilder.REPORT_BUILDER.isReportAlreadyDeleted(chatId)){
+                            message.setText("Фотка уже удалена");
+                        }
+                        else {
+                            ReportController.REPORT_CONTROLLER.deleteReportedFile(chatId);
+                            message.setText("Вы успешно удалили фотку!=)");
+                        }
+                    }
                 }
                 else if (command == Command.NEXT){
-                    var inputObject = ReportController.initializeNextReport(chatId);
-                    executeReport(inputObject);
+                    if (ReportBuilder.REPORT_BUILDER.isNoReports()) {
+                        message.setText("Репортов больше нет, возвращайтесь потом");
+                    }
+                    else{
+                        var inputObject = ReportController.REPORT_CONTROLLER.initializeReport(chatId);
+                        message.setText("Ваш репорт");
+                        executeReport(inputObject);
+                    }
                 }
                 else if (command == Command.CLOSE){
-                    ModeratorController.closeCheckMode(chatId);
+                    ModeratorController.MODERATOR_CONTROLLER.closeCheckMode(chatId);
                     message.setText("Вы вышли из режима проверки репортов, спасибо за проделанную работу!=)");
                 }
                 else{
@@ -142,14 +160,14 @@ public class Bot extends TelegramLongPollingBot {
             if (inputPhoto != null && !inputPhoto.isEmpty()) {
                 var fileId = inputPhoto.stream().max(Comparator.comparing(PhotoSize::getFileSize))
                         .orElse(null).getFileId();
-                var url = FilePath.getDownloadUrl(fileId, botToken);
-                Urls.sendFileGoogleDisk(BotConstants.PHOTO_FOLDER_ID, url, ContentType.PHOTO, inputCaption);
+                var url = FilePath.FILE_PATH.getDownloadUrl(fileId, botToken);
+                UrlsHandler.URlS_HANDLER.sendFileGoogleDisk(BotConstants.BOT_CONSTANTS.getPHOTO_FOLDER_ID(), url, ContentType.PHOTO, inputCaption);
 
                 var message = new SendMessage();
                 message.setChatId(chatId);
                 message.setText("Спасибо за вашу картинку!=)<3");
 
-                InfoController.addLastCommand(chatId, Command.UNKNOWN);
+                InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.UNKNOWN);
 
                 try {
                     execute(message);
@@ -158,14 +176,14 @@ public class Bot extends TelegramLongPollingBot {
                 }
             } else if (inputVideo != null) {
                 var fileId = inputVideo.getFileId();
-                var url = FilePath.getDownloadUrl(fileId, botToken);
-                Urls.sendFileGoogleDisk(BotConstants.VIDEO_FOLDER_ID, url, ContentType.VIDEO, inputCaption);
+                var url = FilePath.FILE_PATH.getDownloadUrl(fileId, botToken);
+                UrlsHandler.URlS_HANDLER.sendFileGoogleDisk(BotConstants.BOT_CONSTANTS.getVIDEO_FOLDER_ID(), url, ContentType.VIDEO, inputCaption);
 
                 var message = new SendMessage();
                 message.setChatId(chatId);
                 message.setText("Спасибо за ваше видео!=)<3");
 
-                InfoController.addLastCommand(chatId, Command.UNKNOWN);
+                InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.UNKNOWN);
                 try {
                     execute(message);
                 } catch (TelegramApiException e) {
@@ -173,14 +191,14 @@ public class Bot extends TelegramLongPollingBot {
                 }
             } else if (inputGif != null) {
                 var fileId = inputGif.getFileId();
-                var url = FilePath.getDownloadUrl(fileId, botToken);
-                Urls.sendFileGoogleDisk(BotConstants.GIF_FOLDER_ID, url, ContentType.GIF, inputCaption);
+                var url = FilePath.FILE_PATH.getDownloadUrl(fileId, botToken);
+                UrlsHandler.URlS_HANDLER.sendFileGoogleDisk(BotConstants.BOT_CONSTANTS.getGIF_FOLDER_ID(), url, ContentType.GIF, inputCaption);
 
                 var message = new SendMessage();
                 message.setChatId(chatId);
                 message.setText("Спасибо за вашу гифку!=)<3");
 
-                InfoController.addLastCommand(chatId, Command.UNKNOWN);
+                InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.UNKNOWN);
 
                 try {
                     execute(message);
@@ -188,7 +206,7 @@ public class Bot extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             } else {
-                var parsedInputText = Parser.Parse(inputText, chatId);
+                var parsedInputText = Parser.PARSER.Parse(inputText, chatId);
                 var command = parsedInputText.getValue0();
                 var commandParameters = parsedInputText.getValue1();
 
@@ -198,12 +216,12 @@ public class Bot extends TelegramLongPollingBot {
                 if (command == Command.START) {
                     message.setText(startText);
 
-                    InfoController.addLastCommand(chatId, Command.START);
+                    InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.START);
                 } else if (command == Command.VIDEO) {
                     var sendTelegramVideo = new SendVideo();
                     sendTelegramVideo.setChatId(chatId);
                     try {
-                        var inputFile = Urls.getFile(ContentType.VIDEO, commandParameters, chatId);
+                        var inputFile = UrlsHandler.URlS_HANDLER.getFile(ContentType.VIDEO, commandParameters, chatId);
                         if (inputFile != null) {
                             sendTelegramVideo.setVideo(inputFile);
                             execute(sendTelegramVideo);
@@ -218,7 +236,7 @@ public class Bot extends TelegramLongPollingBot {
                     var sendTelegramAnimation = new SendAnimation();
                     sendTelegramAnimation.setChatId(chatId);
                     try {
-                        var inputFile = Urls.getFile(ContentType.GIF, commandParameters, chatId);
+                        var inputFile = UrlsHandler.URlS_HANDLER.getFile(ContentType.GIF, commandParameters, chatId);
                         if (inputFile != null) {
                             sendTelegramAnimation.setAnimation(inputFile);
                             execute(sendTelegramAnimation);
@@ -233,7 +251,7 @@ public class Bot extends TelegramLongPollingBot {
                     var sendTelegramPhoto = new SendPhoto();
                     sendTelegramPhoto.setChatId(chatId);
                     try {
-                        var inputFile = Urls.getFile(ContentType.PHOTO, commandParameters, chatId);
+                        var inputFile = UrlsHandler.URlS_HANDLER.getFile(ContentType.PHOTO, commandParameters, chatId);
                         if (inputFile != null) {
                             sendTelegramPhoto.setPhoto(inputFile);
                             execute(sendTelegramPhoto);
@@ -246,37 +264,42 @@ public class Bot extends TelegramLongPollingBot {
                     }
                 } else if (command == Command.HELP) {
                     message.setText(helpText);
-                    InfoController.addLastCommand(chatId, Command.HELP);
+                    InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.HELP);
                 } else if (command == Command.REPORT) {
-                    if (InfoController.isExistInputFile(chatId)) {
+                    if (InfoController.INFO_CONTROLLER.isExistInputFile(chatId)) {
                         message.setText("Укажите причину репорта");
-                        ReportBuilder.addReportedInputFile(chatId, InfoController.getLastInputFile(chatId));
-                        InfoController.addLastCommand(chatId, Command.REPORT);
+                        ReportBuilder.REPORT_BUILDER.addReportedInputFile(chatId, InfoController.INFO_CONTROLLER.getLastInputFile(chatId));
+                        InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.REPORT);
                     } else {
                         message.setText("Для начала получите файл, чтобы была возможность кинуть репорт!");
-                        InfoController.addLastCommand(chatId, Command.UNKNOWN);
+                        InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.UNKNOWN);
                     }
                 } else if (command == Command.CHECK_REPORTS) {
-                    if (ModeratorController.isUserModerator(chatId)) {
-                        message.setText("Вот репорты, пожалуйста, исполняйте свои обязанности нормально!");
-
-                        var inputObject = ReportController.initializeProgressionRelativeReport(chatId);
-                        executeReport(inputObject);
-
-                        ModeratorController.openCheckMode(chatId);
-                        InfoController.addLastCommand(chatId, Command.CHECK_REPORTS);
+                    if (ModeratorController.MODERATOR_CONTROLLER.isUserModerator(chatId)) {
+                        if (ReportBuilder.REPORT_BUILDER.isNoReports()) {
+                            message.setText("Репортов пока что нет=(\n (вы не в режиме модерации)");
+                            InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.UNKNOWN);
+                        }
+                        else {
+                            message.setText("Вот репорты, пожалуйста, исполняйте свои обязанности нормально!");
+                            var inputObject = ReportController.REPORT_CONTROLLER.initializeReport(chatId);
+                            executeReport(inputObject);
+                            ModeratorController.MODERATOR_CONTROLLER.openCheckMode(chatId);
+                            InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.CHECK_REPORTS);
+                        }
                     } else {
                         message.setText("Вы не имеете доступа к данной команде!");
-                        InfoController.addLastCommand(chatId, Command.UNKNOWN);
+                        InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.UNKNOWN);
                     }
                 } else if (command == Command.TEXT_REPORT) {
                     message.setText("Спасибо за ваш репорт, модераторы скоро проверят его!=)");
-                    ReportBuilder.addReportText(chatId, inputText);
-                    ReportBuilder.createReport(chatId);
-                    InfoController.addLastCommand(chatId, Command.UNKNOWN);
+                    ReportBuilder.REPORT_BUILDER.addReportText(chatId, inputText);
+                    ReportBuilder.REPORT_BUILDER.createReport(chatId);
+
+                    InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.UNKNOWN);
                 } else if (command == Command.UNKNOWN) {
                     message.setText("Нет такой команды");
-                    InfoController.addLastCommand(chatId, Command.UNKNOWN);
+                    InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.UNKNOWN);
                 } else if (command == Command.NEXT || command == Command.DELETE || command == Command.CLOSE ){
                     message.setText("Такая команда недоступна в обычном режиме");
                 }

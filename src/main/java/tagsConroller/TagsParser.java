@@ -3,10 +3,11 @@ package tagsConroller;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-public class TagsParser {
-    private static final Pattern inputParsePattern = Pattern.compile("[a-zA-Z0-9а-яА-ЯёЁ_]+");
+public enum TagsParser {
+    TAGS_PARSER;
+    private final Pattern inputParsePattern = Pattern.compile("[a-zA-Z0-9а-яА-ЯёЁ_]+");
 
-    public static String[] parseTagsFromFileName(String name) {
+    public String[] parseTagsFromFileName(String name) {
         name = name.toLowerCase();
         var tagBuilder = new StringBuilder();
         var tags = new ArrayList<String>();
@@ -34,7 +35,7 @@ public class TagsParser {
         return tags.stream().distinct().toArray(String[]::new);
     }
 
-    public static String[] parseTagsFromInputQuery(String input) {
+    public String[] parseTagsFromInputQuery(String input) {
         var result = new ArrayList<String>();
         var matcher = inputParsePattern.matcher(input);
         while (matcher.find()) {

@@ -7,9 +7,11 @@ import overseersModule.InfoController;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Parser {
-    private static final Logger log = Logger.getLogger(Parser.class);
-    private static final Map<Command, String> commandsDict = new HashMap<>(){{
+public enum  Parser {
+    PARSER;
+
+    private final Logger log = Logger.getLogger(Parser.class);
+    private final Map<Command, String> commandsDict = new HashMap<>(){{
         put(Command.START, "/start");
         put(Command.HELP, "/help");
         put(Command.PHOTO, "/photo");
@@ -22,8 +24,8 @@ public class Parser {
         put(Command.DELETE, "/delete");
     }};
 
-    public static Pair<Command, String> Parse(String input, Long chatId) {
-        if (InfoController.isLastCommandReport(chatId)){
+    public Pair<Command, String> Parse(String input, Long chatId) {
+        if (InfoController.INFO_CONTROLLER.isLastCommandReport(chatId)){
             return new Pair<>(Command.TEXT_REPORT, input);
         }
         for (var command: commandsDict.keySet()){

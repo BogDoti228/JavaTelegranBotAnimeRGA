@@ -1,34 +1,38 @@
 package overseersModule;
 
 import commands.ContentType;
-import commands.Urls;
+import commands.UrlsHandler;
+import googleDrive.GoogleDriveClient;
+import objects.GoogleFileContent;
 import org.javatuples.Pair;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.io.IOException;
 
-public class ReportController {
-    public static Object initializeProgressionRelativeReport(Long chatId){
-        var report = ReportBuilder.getProgressionRelativeReport(chatId);
-        return initializeReport(report, chatId);
+public enum ReportController {
+    REPORT_CONTROLLER;
+    public void deleteReportedFile(Long chatId){
+        var report = ReportBuilder.REPORT_BUILDER.getReportForDelete(chatId);
+        var googleFileContent = report.getValue0();
+        GoogleDriveClient.GOOGLE_DRIVE_CLIENT.deleteFile(googleFileContent.getId());
     }
-    public static Object initializeNextReport(Long chatId){
-        var report = ReportBuilder.getNextReport(chatId);
+
+    public Object initializeReport(Long chatId) {
+        var report = ReportBuilder.REPORT_BUILDER.getReport(chatId);
         return initializeReport(report, chatId);
     }
 
-    private static Object initializeReport(Pair<Pair<String, ContentType>, String> report, Long chatId){
-        var url = report.getValue0().getValue0();
-        var type = report.getValue0().getValue1();
+    private Object initializeReport(Pair<GoogleFileContent, String> report, Long chatId){
+        var googleFileContent = report.getValue0();
+        var url = googleFileContent.getUrl();
+        var type = googleFileContent.getContentType();
         var textReport = report.getValue1();
         InputFile inputFile = null;
         try {
-            inputFile = Urls.getFileContent(url, type);
+            inputFile = UrlsHandler.URlS_HANDLER.getFileContent(url, type);
         } catch (IOException e) {
             e.printStackTrace();
         }

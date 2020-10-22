@@ -2,8 +2,9 @@ package googleDrive;
 
 import java.util.Objects;
 
-public class QueryCreator {
-    public static String createQuery(String name, String mimeType, String parrentId)
+public enum QueryCreator {
+    QUERY_CREATOR;
+    public String createQuery(String name, String mimeType, String parrentId)
     {
         StringBuilder builder = new StringBuilder();
         builder.append("trashed=false ");

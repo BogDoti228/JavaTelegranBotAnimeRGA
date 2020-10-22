@@ -22,25 +22,26 @@ import java.util.Collections;
 import java.util.List;
 
 
-public class GoogleDriveClient {
+public enum GoogleDriveClient {
+    GOOGLE_DRIVE_CLIENT;
 
-    private static final String APPLICATION_NAME = "AnimeBotRGA";
+    private final String APPLICATION_NAME = "AnimeBotRGA";
 
-    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+    private final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
-    private static final java.io.File CREDENTIALS_FOLDER = new java.io.File("credentials");
+    private final java.io.File CREDENTIALS_FOLDER = new java.io.File("credentials");
 
-    private static final String CLIENT_SECRET_FILE_NAME = "client_secret.json";
+    private final String CLIENT_SECRET_FILE_NAME = "client_secret.json";
 
-    private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE);
+    private final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE);
 
-    private static FileDataStoreFactory DATA_STORE_FACTORY;
+    private FileDataStoreFactory DATA_STORE_FACTORY;
 
-    private static HttpTransport HTTP_TRANSPORT;
+    private HttpTransport HTTP_TRANSPORT;
 
-    private static Drive _driveService;
+    private Drive _driveService;
 
-    public static void init()
+    public void init()
     {
         try {
             HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -54,7 +55,7 @@ public class GoogleDriveClient {
         }
     }
 
-    public static File createGoogleFile(
+    public File createGoogleFile(
             String googleFolderIdParent, String contentType,
             String customFileName, java.io.File uploadFile
     ) throws IOException {
@@ -63,7 +64,7 @@ public class GoogleDriveClient {
         return _createGoogleFile(googleFolderIdParent, contentType, customFileName, uploadStreamContent);
     }
 
-    public static File createGoogleFile(
+    public File createGoogleFile(
             String googleFolderIdParent, String contentType,
             String customFileName, byte[] uploadData
     ) throws IOException {
@@ -71,7 +72,7 @@ public class GoogleDriveClient {
         return _createGoogleFile(googleFolderIdParent, contentType, customFileName, uploadStreamContent);
     }
 
-    public static File createGoogleFile(
+    public File createGoogleFile(
             String googleFolderIdParent, String contentType,
             String customFileName, InputStream uploadData
     ) throws IOException {
@@ -79,13 +80,13 @@ public class GoogleDriveClient {
         return _createGoogleFile(googleFolderIdParent, contentType, customFileName, uploadStreamContent);
     }
 
-    public static File getGoogleSubFolderByName(
+    public File getGoogleSubFolderByName(
             String googleFolderIdParent,
             String subFolderName
     )
             throws IOException {
         String query = QueryCreator
-                .createQuery(subFolderName, "application/vnd.google-apps.folder", googleFolderIdParent);
+                .QUERY_CREATOR.createQuery(subFolderName, "application/vnd.google-apps.folder", googleFolderIdParent);
         var folders = getFilesByQuery(query);
         if (folders.size() == 0)
             return null;
@@ -94,25 +95,25 @@ public class GoogleDriveClient {
         return folders.get(0);
     }
 
-    public static File getFileByName(
+    public File getFileByName(
             String fileName,
             String mimeType,
             String folderId
     )
             throws IOException {
-        String query = QueryCreator.createQuery(fileName, mimeType, folderId);
+        String query = QueryCreator.QUERY_CREATOR.createQuery(fileName, mimeType, folderId);
         var files = getFilesByQuery(query);
         if (files.size() == 0)
             return null;
         return files.get(0);
     }
 
-    public static List<File> getAllFilesInFolder(String folderId) throws IOException {
-        var query = QueryCreator.createQuery(null,null, folderId);
+    public List<File> getAllFilesInFolder(String folderId) throws IOException {
+        var query = QueryCreator.QUERY_CREATOR.createQuery(null,null, folderId);
         return getFilesByQuery(query);
     }
 
-    public static void deleteFile(String fileId){
+    public void deleteFile(String fileId){
         try {
             _driveService.files().delete(fileId).execute();
         } catch (IOException e) {
@@ -120,14 +121,14 @@ public class GoogleDriveClient {
         }
     }
 
-    private static Drive getDriveService() throws IOException {
+    private Drive getDriveService() throws IOException {
         if (_driveService == null) {
             throw new IOException("Client not initialized");
         }
         return _driveService;
     }
 
-    private static Credential getCredentials() throws IOException {
+    private Credential getCredentials() throws IOException {
 
         java.io.File clientSecretFilePath = new java.io.File(CREDENTIALS_FOLDER, CLIENT_SECRET_FILE_NAME);
 
@@ -147,7 +148,7 @@ public class GoogleDriveClient {
         return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
     }
 
-    private static File _createGoogleFile(
+    private File _createGoogleFile(
             String googleFolderIdParent, String contentType,
             String customFileName, AbstractInputStreamContent uploadStreamContent
     )
@@ -169,7 +170,7 @@ public class GoogleDriveClient {
         return file;
     }
 
-    private static List<File> getFilesByQuery(String query) throws IOException {
+    private List<File> getFilesByQuery(String query) throws IOException {
         Drive driveService = getDriveService();
         String pageToken = null;
         List<File> files

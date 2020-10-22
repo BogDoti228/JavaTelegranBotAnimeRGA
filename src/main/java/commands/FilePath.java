@@ -1,7 +1,6 @@
 package commands;
 
 import org.telegram.telegrambots.meta.api.objects.File;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -9,12 +8,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Comparator;
-import java.util.List;
 
-public class FilePath {
+public enum FilePath {
+    FILE_PATH;
 
-    public static String getDownloadUrl(String fileId, String botToken){
+    public String getDownloadUrl(String fileId, String botToken){
         var request = getRequestHttp(fileId, botToken);
         var data = executePost(request);
         assert data != null;
@@ -22,7 +20,7 @@ public class FilePath {
         return File.getFileUrl(botToken, pathFile);
     }
 
-    private static String getFilePath(String data){
+    private String getFilePath(String data){
         assert data != null;
         var arrayInfo = data.split(":");
         var strangePath = arrayInfo[arrayInfo.length-1];
@@ -33,11 +31,11 @@ public class FilePath {
         return pathFile.toString();
     }
 
-    private static String getRequestHttp(String fileId, String botToken){
+    private String getRequestHttp(String fileId, String botToken){
         return "https://api.telegram.org/bot"+botToken+"/getFile?file_id=" + fileId;
     }
 
-    private static String executePost(String targetURL) {
+    private String executePost(String targetURL) {
         HttpURLConnection connection = null;
 
         try {
@@ -58,7 +56,7 @@ public class FilePath {
 
             InputStream is = connection.getInputStream();
             BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-            StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
+            StringBuilder response = new StringBuilder();
             String line;
             while ((line = rd.readLine()) != null) {
                 response.append(line);

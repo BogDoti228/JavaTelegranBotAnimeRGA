@@ -2,40 +2,49 @@ package overseersModule;
 
 import commands.Command;
 import commands.ContentType;
+import objects.GoogleFileContent;
 import org.javatuples.Pair;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.SynchronousQueue;
 
-public class ReportBuilder {
-    private static Map<Long, Pair<String, ContentType>> mapReportedInputFile = new HashMap<>();
-    private static Map<Long, String> mapReportText = new HashMap<>();
-    private static Map<Long, Integer> mapProgressionReports = new HashMap<>();
-    private static ArrayList<Pair<Pair<String, ContentType>, String>> listReports = new ArrayList<>();
+public enum ReportBuilder {
+    REPORT_BUILDER;
+    private Map<Long, GoogleFileContent> mapReportedInputFile = new HashMap<>();
+    private Map<Long, String> mapReportText = new HashMap<>();
+    private Map<Long, Pair<GoogleFileContent, String>> mapLastReport= new HashMap<>();
+    private Queue<Pair<GoogleFileContent, String>> listReports = new LinkedList<>();
 
-    public static void addReportedInputFile(Long chatId, Pair<String, ContentType> inputFileType){
-        mapReportedInputFile.put(chatId, inputFileType);
+    public void addReportedInputFile(Long chatId, GoogleFileContent googleFileContent){
+        mapReportedInputFile.put(chatId, googleFileContent);
     }
 
-    public static void addReportText(Long chatId, String reportText){
+    public void addReportText(Long chatId, String reportText){
         mapReportText.put(chatId, reportText);
     }
 
-    public static void createReport(Long chatId){
-        listReports.add(Pair.with(mapReportedInputFile.get(chatId), mapReportText.get(chatId)));
+    public void createReport(Long chatId){
+        listReports.offer(Pair.with(mapReportedInputFile.get(chatId), mapReportText.get(chatId)));
     }
 
-    public static Pair<Pair<String, ContentType>, String> getProgressionRelativeReport(Long chatId){
-        if (!mapProgressionReports.containsKey(chatId))
-            mapProgressionReports.put(chatId, 0);
-
-        return listReports.get(mapProgressionReports.get(chatId));
-    }
-    public static Pair<Pair<String, ContentType>, String> getNextReport(Long chatId){
-        mapProgressionReports.put(chatId, mapProgressionReports.get(chatId) + 1);
-        return listReports.get(mapProgressionReports.get(chatId));
+    public Pair<GoogleFileContent, String> getReport(Long chatId){
+        var report = listReports.poll();
+        mapLastReport.put(chatId, report);
+        return report;
     }
 
+    public Pair<GoogleFileContent, String> getReportForDelete(Long chatId){
+        var report = mapLastReport.get(chatId);
+        mapLastReport.remove(chatId);
+        return report;
+    }
+
+    public Boolean isReportAlreadyDeleted(Long chatId){
+        return !mapLastReport.containsKey(chatId);
+    }
+
+    public Boolean isNoReports(){
+        return listReports.size() == 0;
+    }
 }

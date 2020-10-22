@@ -4,10 +4,11 @@ import it.grabz.grabzit.GrabzItClient;
 
 import java.io.UnsupportedEncodingException;
 
-public class GifConverter {
-    public static byte[] gifConverter(String url)
+public enum GifConverter {
+    GIF_CONVERTER;
+    public byte[] gifConverter(String url)
     {
-        var converter = new GrabzItClient(BotConstants.APPLICATION_KEY, BotConstants.APPLICATION_SECRET);
+        var converter = new GrabzItClient(BotConstants.BOT_CONSTANTS.getAPPLICATION_KEY(), BotConstants.BOT_CONSTANTS.getAPPLICATION_SECRET());
         try {
             converter.URLToAnimation(url);
             try {
