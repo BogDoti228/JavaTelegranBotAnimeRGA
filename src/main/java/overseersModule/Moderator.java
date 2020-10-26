@@ -25,6 +25,6 @@ public class Moderator {
     }
 
     public boolean isOwner(){
-        return this.chatId.equals(BotConstants.BOT_CONSTANTS.getBOT_OWNER_CHAT_ID());
+        return BotConstants.BOT_CONSTANTS.getBOT_OWNERS_CHAT_ID().contains(this.chatId);
     }
 }

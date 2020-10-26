@@ -320,7 +320,7 @@ public class Bot extends TelegramLongPollingBot {
                         } catch (NumberFormatException e) {
                             message.setText("Неверно указан id пользователя");
                         }
-                    } else if (command == Command.DESUDO) {
+                } else if (command == Command.DESUDO) {
                     try {
                         Long moderatorId = Long.parseLong(commandParameters);
                         if (!ModeratorController.MODERATOR_CONTROLLER.isOwner(chatId)) {

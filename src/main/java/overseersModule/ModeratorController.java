@@ -9,8 +9,9 @@ public enum ModeratorController {
     MODERATOR_CONTROLLER;
 
     private final Map<Long, Moderator> moderators = new HashMap<>(){{
-        put(BotConstants.BOT_CONSTANTS.getBOT_OWNER_CHAT_ID(),
-                new Moderator(BotConstants.BOT_CONSTANTS.getBOT_OWNER_CHAT_ID()));
+        for (var chatId : BotConstants.BOT_CONSTANTS.getBOT_OWNERS_CHAT_ID()){
+            put(chatId, new Moderator(chatId));
+        }
     }};
 
     public void addModerator(Long userId){
