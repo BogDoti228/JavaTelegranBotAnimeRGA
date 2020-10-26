@@ -22,6 +22,8 @@ public enum  Parser {
         put(Command.CLOSE, "/close");
         put(Command.NEXT, "/next");
         put(Command.DELETE, "/delete");
+        put(Command.SUDO, "/sudo");
+        put(Command.DESUDO, "/desudo");
     }};
 
     public Pair<Command, String> Parse(String input, Long chatId) {
@@ -30,7 +32,9 @@ public enum  Parser {
         }
         for (var command: commandsDict.keySet()){
             if (input.startsWith(commandsDict.get(command))) {
-                var parameters = input.substring(commandsDict.get(command).length());
+                var parameters = "";
+                if (input.length() != commandsDict.get(command).length())
+                    parameters = input.substring(commandsDict.get(command).length() + 1);
                 return new Pair<>(command, parameters);
             }
         }

@@ -1,36 +1,50 @@
 package overseersModule;
 
-import java.util.ArrayList;
+import commands.BotConstants;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public enum ModeratorController {
     MODERATOR_CONTROLLER;
-    private final ArrayList<Long> moderatorsList = new ArrayList<>(){{
-        add((long) 364198280);
-        add((long) 341332628);
-    }
-    };
 
-    private final Map<Long, Boolean> moderatorsInCheckMode = new HashMap<>(){{
-        put((long) 364198280, false);
-        put((long) 341332628, false);
+    private final Map<Long, Moderator> moderators = new HashMap<>(){{
+        put(BotConstants.BOT_CONSTANTS.getBOT_OWNER_CHAT_ID(),
+                new Moderator(BotConstants.BOT_CONSTANTS.getBOT_OWNER_CHAT_ID()));
     }};
 
-
-    public Boolean isUserModerator(Long user){
-        return moderatorsList.contains(user);
+    public void addModerator(Long userId){
+        if (isUserModerator(userId))
+            return;
+        moderators.put(userId, new Moderator(userId));
     }
 
-    public void openCheckMode(Long user){
-        moderatorsInCheckMode.put(user, true);
+    public boolean isOwner(Long userId){
+        return isUserModerator(userId) && moderators.get(userId).isOwner();
     }
 
-    public void closeCheckMode(Long user){
-        moderatorsInCheckMode.put(user, false);
+    public void demoteModerator(Long chatId) {
+        moderators.remove(chatId);
     }
 
-    public Boolean isModeratorInCheckMode(Long user){
-        return moderatorsInCheckMode.get(user);
+    public Boolean passwordIsCorrect(String password){
+        var expected = BotConstants.BOT_CONSTANTS.getMODERATOR_PASSWORD();
+        return expected.equals(password);
+    }
+
+    public Boolean isUserModerator(Long userId){
+        return moderators.containsKey(userId);
+    }
+
+    public void openCheckMode(Long userId){
+        moderators.get(userId).toCheckMode();
+    }
+
+    public void closeCheckMode(Long userId){
+        moderators.get(userId).leaveCheckMode();
+    }
+
+    public Boolean isModeratorInCheckMode(Long userId){
+        return moderators.get(userId).isInCheckMode();
     }
 }

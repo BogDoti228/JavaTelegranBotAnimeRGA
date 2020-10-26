@@ -20,6 +20,7 @@ import overseersModule.ReportBuilder;
 import overseersModule.ReportController;
 
 
+import java.text.ParseException;
 import java.util.Comparator;
 
 @NoArgsConstructor
@@ -93,7 +94,6 @@ public class Bot extends TelegramLongPollingBot {
         var inputVideo = update.getMessage().getVideo();
         var inputGif = update.getMessage().getAnimation();
         var inputCaption = update.getMessage().getCaption();
-
         if (ModeratorController.MODERATOR_CONTROLLER.isUserModerator(chatId)
                 && ModeratorController.MODERATOR_CONTROLLER.isModeratorInCheckMode(chatId)){
             if (inputPhoto != null || inputVideo != null || inputGif != null){
@@ -302,6 +302,34 @@ public class Bot extends TelegramLongPollingBot {
                     InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.UNKNOWN);
                 } else if (command == Command.NEXT || command == Command.DELETE || command == Command.CLOSE ){
                     message.setText("Такая команда недоступна в обычном режиме");
+                } else if (command == Command.SUDO){
+                    if (ModeratorController.MODERATOR_CONTROLLER.isUserModerator(chatId)) {
+                        message.setText("Вы уже являетесь модератором");
+                    }
+                    else if (ModeratorController.MODERATOR_CONTROLLER.passwordIsCorrect(commandParameters)){
+                            ModeratorController.MODERATOR_CONTROLLER.addModerator(chatId);
+                            message.setText("Поздравляем, теперь вы модератор");
+                    }
+                    else{
+                        message.setText("Неправильный пароль");
+                    }
+                } else if (command == Command.DESUDO){
+                    try{
+                        Long moderatorId = Long.parseLong(commandParameters);
+                        if (!ModeratorController.MODERATOR_CONTROLLER.isOwner(chatId)){
+                            message.setText("У вас нет таких прав");
+                        }
+                        else if (!ModeratorController.MODERATOR_CONTROLLER.isUserModerator(moderatorId)) {
+                            message.setText("Данный человек не модератор");
+                        }
+                        else{
+                            ModeratorController.MODERATOR_CONTROLLER.demoteModerator(moderatorId);
+                            message.setText("Модератор лишён своих привелегий");
+                        }
+                    }
+                    catch (NumberFormatException e){
+                        message.setText("id модератора должно быть числом");
+                    }
                 }
 
                 try {

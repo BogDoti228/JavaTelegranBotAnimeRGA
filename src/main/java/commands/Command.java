@@ -5,5 +5,6 @@ public enum Command {
     HELP, REPORT, TEXT_REPORT,
     CHECK_REPORTS,
     UNKNOWN, VIDEO, GIF,
-    DELETE, NEXT, CLOSE
+    DELETE, NEXT, CLOSE,
+    SUDO, DESUDO
 }
