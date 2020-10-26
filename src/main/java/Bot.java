@@ -302,32 +302,38 @@ public class Bot extends TelegramLongPollingBot {
                     InfoController.INFO_CONTROLLER.addLastCommand(chatId, Command.UNKNOWN);
                 } else if (command == Command.NEXT || command == Command.DELETE || command == Command.CLOSE ){
                     message.setText("Такая команда недоступна в обычном режиме");
-                } else if (command == Command.SUDO){
-                    if (ModeratorController.MODERATOR_CONTROLLER.isUserModerator(chatId)) {
-                        message.setText("Вы уже являетесь модератором");
-                    }
-                    else if (ModeratorController.MODERATOR_CONTROLLER.passwordIsCorrect(commandParameters)){
-                            ModeratorController.MODERATOR_CONTROLLER.addModerator(chatId);
-                            message.setText("Поздравляем, теперь вы модератор");
-                    }
-                    else{
-                        message.setText("Неправильный пароль");
-                    }
-                } else if (command == Command.DESUDO){
-                    try{
+                } else if (command == Command.SUDO) {
+                        try {
+                            if (!ModeratorController.MODERATOR_CONTROLLER.isOwner(chatId)) {
+                                message.setText("У вас нет таких прав");
+                            }
+                            else {
+                                var moderatorId = Long.parseLong(commandParameters);
+
+                                if (ModeratorController.MODERATOR_CONTROLLER.isUserModerator(moderatorId)) {
+                                    message.setText("Данный пользователь уже является модератором");
+                                } else {
+                                    ModeratorController.MODERATOR_CONTROLLER.addModerator(moderatorId);
+                                    message.setText("Данный пользователь получил права модератора");
+                                }
+                            }
+                        } catch (NumberFormatException e) {
+                            message.setText("Неверно указан id пользователя");
+                        }
+                    } else if (command == Command.DESUDO) {
+                    try {
                         Long moderatorId = Long.parseLong(commandParameters);
-                        if (!ModeratorController.MODERATOR_CONTROLLER.isOwner(chatId)){
+                        if (!ModeratorController.MODERATOR_CONTROLLER.isOwner(chatId)) {
                             message.setText("У вас нет таких прав");
-                        }
-                        else if (!ModeratorController.MODERATOR_CONTROLLER.isUserModerator(moderatorId)) {
-                            message.setText("Данный человек не модератор");
-                        }
-                        else{
+                        } else if (!ModeratorController.MODERATOR_CONTROLLER.isUserModerator(moderatorId)) {
+                            message.setText("Данный человек не является модератором и потому не может быть удалён");
+                        } else if (ModeratorController.MODERATOR_CONTROLLER.isOwner(moderatorId)) {
+                            message.setText("Нельзя лишить прав модератора владельца бота");
+                        } else {
                             ModeratorController.MODERATOR_CONTROLLER.demoteModerator(moderatorId);
                             message.setText("Модератор лишён своих привелегий");
                         }
-                    }
-                    catch (NumberFormatException e){
+                    } catch (NumberFormatException e) {
                         message.setText("id модератора должно быть числом");
                     }
                 }

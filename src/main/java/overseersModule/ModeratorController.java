@@ -24,12 +24,10 @@ public enum ModeratorController {
     }
 
     public void demoteModerator(Long chatId) {
+        if (isOwner(chatId)){
+            return;
+        }
         moderators.remove(chatId);
-    }
-
-    public Boolean passwordIsCorrect(String password){
-        var expected = BotConstants.BOT_CONSTANTS.getMODERATOR_PASSWORD();
-        return expected.equals(password);
     }
 
     public Boolean isUserModerator(Long userId){
