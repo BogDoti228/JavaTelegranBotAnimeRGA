@@ -1,13 +1,11 @@
-package tagsConroller;
+package bot.tagsConroller;
 
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
 public enum  NameCreator {
-    NAME_CREATOR;
+    INSTANCE;
 
     @Getter
     private final String defaultName = "defaultname";
@@ -25,7 +23,7 @@ public enum  NameCreator {
         if (inputQuery == null)
             return defaultName;
         inputQuery = inputQuery.toLowerCase();
-        var tags = TagsParser.TAGS_PARSER.parseTagsFromInputQuery(inputQuery);
+        var tags = TagsParser.INSTANCE.parseTagsFromInputQuery(inputQuery);
         if (tags.length == 0)
             return defaultName;
         Arrays.sort(tags);

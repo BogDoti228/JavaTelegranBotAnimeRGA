@@ -1,10 +1,10 @@
-package tagsConroller;
+package bot.tagsConroller;
 
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public enum TagsParser {
-    TAGS_PARSER;
+    INSTANCE;
     private final Pattern inputParsePattern = Pattern.compile("[a-zA-Z0-9а-яА-ЯёЁ_]+");
 
     public String[] parseTagsFromFileName(String name) {

@@ -3,17 +3,17 @@ package tagsTests;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tagsConroller.NameCreator;
+import bot.tagsConroller.NameCreator;
 
 
 public class TestCreator {
-    private final String defaultName = NameCreator.NAME_CREATOR.getDefaultName();
+    private final String defaultName = NameCreator.INSTANCE.getDefaultName();
 
     @Test
     public void testWhenFullStringIsTag() {
         var str = "hello";
         var expected = "hello";
-        var actual = NameCreator.NAME_CREATOR.createNameWithTags(str);
+        var actual = NameCreator.INSTANCE.createNameWithTags(str);
         Assert.assertEquals(
                 expected,
                 actual
@@ -24,7 +24,7 @@ public class TestCreator {
     public void testWhenTwoDefaultTags() {
         var str = "hello world";
         var expected = "hello_world";
-        var actual = NameCreator.NAME_CREATOR.createNameWithTags(str);
+        var actual = NameCreator.INSTANCE.createNameWithTags(str);
         Assert.assertEquals(
                 expected,
                 actual
@@ -35,7 +35,7 @@ public class TestCreator {
     public void testWhenTagContainsNumbers() {
         var str = "he110";
         var expected = "he110";
-        var actual = NameCreator.NAME_CREATOR.createNameWithTags(str);
+        var actual = NameCreator.INSTANCE.createNameWithTags(str);
         Assert.assertEquals(
                 expected,
                 actual
@@ -46,7 +46,7 @@ public class TestCreator {
     public void testAcceptRussianLanguage() {
         var str = "привет";
         var expected = "привет";
-        var actual = NameCreator.NAME_CREATOR.createNameWithTags(str);
+        var actual = NameCreator.INSTANCE.createNameWithTags(str);
         Assert.assertEquals(
                 expected,
                 actual
@@ -57,7 +57,7 @@ public class TestCreator {
     public void testWhenTagContainsUnderlines() {
         var str = "h_e__llo";
         var expected = "h__e____llo";
-        var actual = NameCreator.NAME_CREATOR.createNameWithTags(str);
+        var actual = NameCreator.INSTANCE.createNameWithTags(str);
         Assert.assertEquals(
                 expected,
                 actual
@@ -67,19 +67,19 @@ public class TestCreator {
     @Test
     public void testReturnDefaultWhenZeroAcceptedSymbolsInInput() {
         var str = ",.\\   .!!^=&^##$^&?";
-        Assert.assertEquals(NameCreator.NAME_CREATOR.createNameWithTags(str), defaultName);
+        Assert.assertEquals(NameCreator.INSTANCE.createNameWithTags(str), defaultName);
     }
 
     @Test
     public void testReturnDefaultWhenUnderlineAtTheBeginning() {
         var str = "_hello";
-        Assert.assertEquals(NameCreator.NAME_CREATOR.createNameWithTags(str), defaultName);
+        Assert.assertEquals(NameCreator.INSTANCE.createNameWithTags(str), defaultName);
     }
 
     @Test
     public void testReturnDefaultWhenUnderlineAtTheEnd() {
         var str = "hello_";
-        Assert.assertEquals(NameCreator.NAME_CREATOR.createNameWithTags(str), defaultName);
+        Assert.assertEquals(NameCreator.INSTANCE.createNameWithTags(str), defaultName);
     }
 
     @Test
@@ -88,7 +88,7 @@ public class TestCreator {
         var expected = "hello_world";
         Assert.assertEquals(
                 expected,
-                NameCreator.NAME_CREATOR.createNameWithTags(str)
+                NameCreator.INSTANCE.createNameWithTags(str)
         );
     }
 
@@ -99,7 +99,7 @@ public class TestCreator {
         var expected = "hello_world";
         Assert.assertEquals(
                 expected,
-                NameCreator.NAME_CREATOR.createNameWithTags(str)
+                NameCreator.INSTANCE.createNameWithTags(str)
         );
     }
 
@@ -107,6 +107,6 @@ public class TestCreator {
     public void testUltraHardDifficultyOmegaHardSituation() {
         var str = "he11lo_world,+=123   abc;length";
         var expected = "123_abc_he11lo__world_length";
-        Assert.assertEquals(expected, NameCreator.NAME_CREATOR.createNameWithTags(str));
+        Assert.assertEquals(expected, NameCreator.INSTANCE.createNameWithTags(str));
     }
 }
