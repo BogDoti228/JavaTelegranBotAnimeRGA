@@ -4,6 +4,7 @@ import java.util.Objects;
 
 public enum QueryCreator {
     QUERY_CREATOR;
+
     public String createQuery(String name, String mimeType, String parrentId)
     {
         StringBuilder builder = new StringBuilder();

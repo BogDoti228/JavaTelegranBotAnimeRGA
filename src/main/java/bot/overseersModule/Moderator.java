@@ -1,6 +1,6 @@
-package overseersModule;
+package bot.overseersModule;
 
-import commands.BotConstants;
+import bot.BotConstants;
 
 public class Moderator {
 
@@ -25,6 +25,6 @@ public class Moderator {
     }
 
     public boolean isOwner(){
-        return BotConstants.BOT_CONSTANTS.getBOT_OWNERS_CHAT_ID().contains(this.chatId);
+        return BotConstants.INSTANCE.getBOT_OWNERS_CHAT_ID().contains(this.chatId);
     }
 }

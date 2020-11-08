@@ -1,15 +1,15 @@
-package overseersModule;
+package bot.overseersModule;
 
-import commands.BotConstants;
+import bot.BotConstants;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public enum ModeratorController {
-    MODERATOR_CONTROLLER;
+    INSTANCE;
 
     private final Map<Long, Moderator> moderators = new HashMap<>(){{
-        for (var chatId : BotConstants.BOT_CONSTANTS.getBOT_OWNERS_CHAT_ID()){
+        for (var chatId : BotConstants.INSTANCE.getBOT_OWNERS_CHAT_ID()){
             put(chatId, new Moderator(chatId));
         }
     }};
@@ -28,7 +28,10 @@ public enum ModeratorController {
         if (isOwner(chatId)){
             return;
         }
-        moderators.remove(chatId);
+        if (isUserModerator(chatId)) {
+            moderators.get(chatId).leaveCheckMode();
+            moderators.remove(chatId);
+        }
     }
 
     public Boolean isUserModerator(Long userId){

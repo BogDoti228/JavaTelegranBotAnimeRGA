@@ -1,6 +1,11 @@
-package commands;
+package bot.commands.receiveCommands;
 
+import bot.Bot;
+import bot.commands.Command;
+import bot.content.ContentType;
+import bot.content.GoogleContentFile;
 import org.telegram.telegrambots.meta.api.objects.File;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -9,10 +14,22 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public enum FilePath {
-    FILE_PATH;
+public abstract class ReceiveContentCommand implements Command {
+    protected GoogleContentFile receivedFile;
 
-    public String getDownloadUrl(String fileId, String botToken){
+    public abstract ContentType getContentType();
+
+    @Override
+    public boolean shouldContinue() {
+        return false;
+    }
+
+    @Override
+    public void continueExecute(Update update, Bot bot) {
+        throw new UnsupportedOperationException();
+    }
+
+    protected String getDownloadUrl(String fileId, String botToken){
         var request = getRequestHttp(fileId, botToken);
         var data = executePost(request);
         assert data != null;
@@ -31,8 +48,8 @@ public enum FilePath {
         return pathFile.toString();
     }
 
-    private String getRequestHttp(String fileId, String botToken){
-        return "https://api.telegram.org/bot"+botToken+"/getFile?file_id=" + fileId;
+    private String getRequestHttp(String fileId, String botToken) {
+        return "https://api.telegram.org/bot" + botToken + "/getFile?file_id=" + fileId;
     }
 
     private String executePost(String targetURL) {
@@ -50,7 +67,7 @@ public enum FilePath {
             connection.setUseCaches(false);
             connection.setDoOutput(true);
 
-            DataOutputStream wr = new DataOutputStream (
+            DataOutputStream wr = new DataOutputStream(
                     connection.getOutputStream());
             wr.close();
 

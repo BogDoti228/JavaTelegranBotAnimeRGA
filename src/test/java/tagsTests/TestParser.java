@@ -2,7 +2,7 @@ package tagsTests;
 
 import org.junit.Assert;
 import org.junit.Test;
-import tagsConroller.TagsParser;
+import bot.tagsConroller.TagsParser;
 
 
 public class TestParser {
@@ -11,7 +11,7 @@ public class TestParser {
         var str = "";
         Assert.assertArrayEquals(
                 new String[0],
-                TagsParser.TAGS_PARSER.parseTagsFromFileName(str)
+                TagsParser.INSTANCE.parseTagsFromFileName(str)
         );
     }
 
@@ -21,7 +21,7 @@ public class TestParser {
         var expected = new String[] {str};
         Assert.assertArrayEquals(
                 expected,
-                TagsParser.TAGS_PARSER.parseTagsFromFileName(str)
+                TagsParser.INSTANCE.parseTagsFromFileName(str)
         );
     }
 
@@ -31,7 +31,7 @@ public class TestParser {
         var expected = new String[] {"hello_world"};
         Assert.assertArrayEquals(
                 expected,
-                TagsParser.TAGS_PARSER.parseTagsFromFileName(str)
+                TagsParser.INSTANCE.parseTagsFromFileName(str)
         );
     }
 
@@ -41,7 +41,7 @@ public class TestParser {
         var expected = new String[] {"image"};
         Assert.assertArrayEquals(
                 expected,
-                TagsParser.TAGS_PARSER.parseTagsFromFileName(str)
+                TagsParser.INSTANCE.parseTagsFromFileName(str)
         );
     }
 
@@ -51,7 +51,7 @@ public class TestParser {
         var expected = new String[] { "he110" };
         Assert.assertArrayEquals(
                 expected,
-                TagsParser.TAGS_PARSER.parseTagsFromFileName(str)
+                TagsParser.INSTANCE.parseTagsFromFileName(str)
         );
     }
 
@@ -61,7 +61,7 @@ public class TestParser {
         var expected = new String[] {"hello", "world"} ;
         Assert.assertArrayEquals(
                 expected,
-                TagsParser.TAGS_PARSER.parseTagsFromFileName(str)
+                TagsParser.INSTANCE.parseTagsFromFileName(str)
         );
     }
 }

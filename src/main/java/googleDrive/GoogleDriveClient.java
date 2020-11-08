@@ -23,7 +23,7 @@ import java.util.List;
 
 
 public enum GoogleDriveClient {
-    GOOGLE_DRIVE_CLIENT;
+    INSTANCE;
 
     private final String APPLICATION_NAME = "AnimeBotRGA";
 
@@ -115,7 +115,9 @@ public enum GoogleDriveClient {
 
     public void deleteFile(String fileId){
         try {
-            _driveService.files().delete(fileId).execute();
+            File newContent = new File();
+            newContent.setTrashed(true);
+            _driveService.files().update(fileId, newContent).execute();
         } catch (IOException e) {
             e.printStackTrace();
         }
