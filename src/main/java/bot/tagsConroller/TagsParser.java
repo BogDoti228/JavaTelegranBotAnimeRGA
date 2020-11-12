@@ -1,9 +1,10 @@
 package bot.tagsConroller;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-public enum TagsParser {
+public enum TagsParser implements Serializable {
     INSTANCE;
     private final Pattern inputParsePattern = Pattern.compile("[a-zA-Z0-9а-яА-ЯёЁ_]+");
 

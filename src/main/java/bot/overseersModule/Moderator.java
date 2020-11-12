@@ -2,7 +2,9 @@ package bot.overseersModule;
 
 import bot.BotConstants;
 
-public class Moderator {
+import java.io.Serializable;
+
+public class Moderator implements Serializable {
 
     public final Long chatId;
 

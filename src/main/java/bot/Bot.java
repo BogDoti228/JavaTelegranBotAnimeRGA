@@ -3,9 +3,13 @@ package bot;
 import bot.commands.*;
 import bot.commands.sendCommands.SendCommand;
 import bot.content.ContentType;
+import bot.overseersModule.ModeratorController;
+import bot.overseersModule.ReportController;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.log4j.Log4j;
+import org.apache.http.impl.io.EmptyInputStream;
 import org.apache.log4j.Logger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -16,9 +20,19 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import bot.overseersModule.InfoController;
 
-@NoArgsConstructor
-public class Bot extends TelegramLongPollingBot {
-    private final Logger log = Logger.getLogger(Bot.class);
+import java.io.*;
+
+
+public class Bot extends TelegramLongPollingBot implements Serializable {
+    private static class BotInfo implements Serializable {
+        private ModeratorController moderatorController = new ModeratorController();
+
+        private ReportController reportController = new ReportController();
+
+        private InfoController infoController = new InfoController();
+    }
+
+    private Logger log = Logger.getLogger(Bot.class);
 
     final int RECONNECT_PAUSE = 10000;
 
@@ -26,20 +40,22 @@ public class Bot extends TelegramLongPollingBot {
     @Getter
     private String botName;
 
+    private BotInfo info;
+
     @Setter
     private String botToken;
 
     public Bot(String botName, String botToken) {
         this.botName = botName;
         this.botToken = botToken;
+        this.info = new BotInfo();
     }
 
     @Override
     public void onUpdateReceived(Update update) {
-        log.debug("Receive new Update. updateID: " + update.getUpdateId());
         Long chatId = update.getMessage().getChatId();
-        var lastCommand = InfoController.INSTANCE.getLastCommand(chatId);
-        if (lastCommand != null && lastCommand.shouldContinue()) {
+        var lastCommand = this.info.infoController.getLastCommand(chatId);
+        if (lastCommand != null && lastCommand.shouldContinue(this)) {
             lastCommand.continueExecute(update, this);
         } else {
             handleNewCommand(update);
@@ -48,13 +64,11 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        log.debug("Bot.Bot name: " + botName);
         return botName;
     }
 
     @Override
     public String getBotToken() {
-        log.debug("Bot.Bot token: " + botToken);
         return botToken;
     }
 
@@ -62,9 +76,7 @@ public class Bot extends TelegramLongPollingBot {
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
         try {
             telegramBotsApi.registerBot(this);
-            log.info("TelegramAPI started. Bot.Bot connected and waiting for messages");
         } catch (TelegramApiRequestException e) {
-            log.error("Cant Connect. Pause " + RECONNECT_PAUSE / 1000 + "sec and try again. Error: " + e.getMessage());
             try {
                 Thread.sleep(RECONNECT_PAUSE);
             } catch (InterruptedException e1) {
@@ -75,11 +87,23 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
+    public ModeratorController getModeratorController(){
+        return this.info.moderatorController;
+    }
+
+    public InfoController getInfoController(){
+        return this.info.infoController;
+    }
+
+    public ReportController getReportController(){
+        return this.info.reportController;
+    }
+
     private void handleNewCommand(Update update) {
         var chatId = update.getMessage().getChatId();
         Command command = CommandParser.INSTANCE.getCommandByUpdate(update);
         command.startExecute(update, this);
-        InfoController.INSTANCE.addLastCommand(chatId, command);
+        this.info.infoController.addLastCommand(chatId, command);
     }
 
     public void sendTextMessage(Long chatId, String text){
@@ -119,5 +143,24 @@ public class Bot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
-}
 
+    public void save(OutputStream stream){
+        try {
+            var outputStream =  new ObjectOutputStream(stream);
+            outputStream.writeObject(this.info);
+        } catch (Exception e){
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void load(InputStream stream){
+        try{
+            var object = new ObjectInputStream(stream).readObject();
+            this.info = (BotInfo) object;
+            System.out.println("Я загрузил");
+        } catch (Exception e){
+            System.out.println("Ошибка с загрузкой состояния");
+        }
+    }
+}

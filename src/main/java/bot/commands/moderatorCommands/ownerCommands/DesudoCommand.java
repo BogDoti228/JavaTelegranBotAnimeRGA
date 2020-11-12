@@ -5,10 +5,11 @@ import bot.commands.CommandType;
 import bot.overseersModule.ModeratorController;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 public class DesudoCommand extends OwnerCommand {
-    private enum Condition{
+    private enum Condition implements Serializable {
         NOT_STARTED, WAITING_CONTACT, FINISHED, CANCELED
     }
 
@@ -22,8 +23,8 @@ public class DesudoCommand extends OwnerCommand {
     }
 
     @Override
-    public boolean shouldContinue() {
-        return isOwner() && condition != Condition.FINISHED && condition != Condition.CANCELED;
+    public boolean shouldContinue(Bot bot) {
+        return isOwner(bot) && condition != Condition.FINISHED && condition != Condition.CANCELED;
     }
 
     @Override
@@ -37,7 +38,7 @@ public class DesudoCommand extends OwnerCommand {
         else if (contact == null){
             bot.sendTextMessage(moderatorId, "Вы не прислали контант");
         } else {
-            ModeratorController.INSTANCE.demoteModerator(contact.getUserID().longValue());
+            bot.getModeratorController().demoteModerator(contact.getUserID().longValue());
             bot.sendTextMessage(moderatorId, "Данный пользователь больше не модератор");
             condition = Condition.FINISHED;
         }

@@ -3,12 +3,11 @@ package bot.overseersModule;
 import bot.commands.Command;
 import bot.commands.sendCommands.SendCommand;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum InfoController {
-    INSTANCE;
-
+public class InfoController implements Serializable {
     private Map<Long, Command> mapDataIdCommands = new HashMap<>();
     private Map<Long, SendCommand> lastSentContent = new HashMap<>();
 

@@ -2,9 +2,10 @@ package bot.tagsConroller;
 
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.util.*;
 
-public enum  NameCreator {
+public enum  NameCreator implements Serializable {
     INSTANCE;
 
     @Getter

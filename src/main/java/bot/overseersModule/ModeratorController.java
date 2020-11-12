@@ -2,13 +2,12 @@ package bot.overseersModule;
 
 import bot.BotConstants;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum ModeratorController {
-    INSTANCE;
-
-    private final Map<Long, Moderator> moderators = new HashMap<>(){{
+public class ModeratorController implements Serializable {
+    private Map<Long, Moderator> moderators = new HashMap<>(){{
         for (var chatId : BotConstants.INSTANCE.getBOT_OWNERS_CHAT_ID()){
             put(chatId, new Moderator(chatId));
         }

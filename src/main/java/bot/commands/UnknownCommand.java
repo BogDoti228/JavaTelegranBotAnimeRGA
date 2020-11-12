@@ -10,7 +10,7 @@ public class UnknownCommand implements Command{
     }
 
     @Override
-    public boolean shouldContinue() {
+    public boolean shouldContinue(Bot bot) {
         return false;
     }
 

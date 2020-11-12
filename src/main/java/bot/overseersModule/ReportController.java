@@ -3,12 +3,11 @@ package bot.overseersModule;
 import bot.commands.ReportCommand;
 import googleDrive.GoogleDriveClient;
 
+import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-public enum ReportController {
-    INSTANCE;
-
+public class ReportController implements Serializable {
     private Queue<ReportCommand> reports = new ArrayDeque<>();
 
     public void deleteReportedFile(ReportCommand report) {

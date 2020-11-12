@@ -5,6 +5,7 @@ import org.apache.http.impl.io.EmptyInputStream;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.URL;
 
 public class GifFile extends GoogleContentFile {

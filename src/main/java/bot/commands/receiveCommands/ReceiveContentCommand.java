@@ -20,7 +20,7 @@ public abstract class ReceiveContentCommand implements Command {
     public abstract ContentType getContentType();
 
     @Override
-    public boolean shouldContinue() {
+    public boolean shouldContinue(Bot bot) {
         return false;
     }
 

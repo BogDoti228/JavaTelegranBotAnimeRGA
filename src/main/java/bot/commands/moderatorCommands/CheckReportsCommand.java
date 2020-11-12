@@ -14,18 +14,18 @@ public class CheckReportsCommand extends ModeratorCommand {
     @Override
     public void startExecute(Update update, Bot bot) {
         this.moderatorId = update.getMessage().getChatId();
-        if (!isModerator()){
+        if (!isModerator(bot)){
             bot.sendTextMessage(this.moderatorId, "У вас нет таких прав");
         } else {
-            ModeratorController.INSTANCE.openCheckMode(this.moderatorId);
+            bot.getModeratorController().openCheckMode(this.moderatorId);
             bot.sendTextMessage(this.moderatorId, "Вы вошли в режим модератора");
             toTheNextReport(bot);
         }
     }
 
     @Override
-    public boolean shouldContinue() {
-        return isModerator() && ModeratorController.INSTANCE.isModeratorInCheckMode(this.moderatorId);
+    public boolean shouldContinue(Bot bot) {
+        return isModerator(bot) && bot.getModeratorController().isModeratorInCheckMode(this.moderatorId);
     }
 
     @Override
@@ -37,11 +37,11 @@ public class CheckReportsCommand extends ModeratorCommand {
         var text = update.getMessage().getText();
         switch (text) {
             case "/close":
-                ModeratorController.INSTANCE.closeCheckMode(this.moderatorId);
+                bot.getModeratorController().closeCheckMode(this.moderatorId);
                 bot.sendTextMessage(moderatorId, "Вы вышли из режима модератора");
                 break;
             case "/delete":
-                ReportController.INSTANCE.deleteReportedFile(currentReport);
+                bot.getReportController().deleteReportedFile(currentReport);
                 bot.sendTextMessage(moderatorId, "Удаление прошло успешно");
                 break;
             case "/next":
@@ -58,7 +58,7 @@ public class CheckReportsCommand extends ModeratorCommand {
     }
 
     private void toTheNextReport(Bot bot){
-        currentReport = ReportController.INSTANCE.getReport();
+        currentReport = bot.getReportController().getReport();
         if (currentReport == null){
             bot.sendTextMessage(moderatorId, "На данный момент нет репортов");
         } else{

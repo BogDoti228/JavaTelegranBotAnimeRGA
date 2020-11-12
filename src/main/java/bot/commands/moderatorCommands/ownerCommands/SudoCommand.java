@@ -5,10 +5,11 @@ import bot.commands.CommandType;
 import bot.overseersModule.ModeratorController;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 public class SudoCommand extends OwnerCommand {
-    private enum Condition{
+    private enum Condition implements Serializable {
         NOT_STARTED, WAITING_CONTACT, FINISHED, CANCELED
     }
 
@@ -17,7 +18,7 @@ public class SudoCommand extends OwnerCommand {
     @Override
     public void startExecute(Update update, Bot bot) {
         this.moderatorId = update.getMessage().getChatId();
-        if (!isOwner()) {
+        if (!isOwner(bot)) {
             bot.sendTextMessage(this.moderatorId, "У вас нет таких прав");
         } else {
             bot.sendTextMessage(moderatorId, "Отправьте контакт, который должен стать модератором");
@@ -26,8 +27,8 @@ public class SudoCommand extends OwnerCommand {
     }
 
     @Override
-    public boolean shouldContinue() {
-        return isOwner() && condition != Condition.FINISHED && condition != Condition.CANCELED ;
+    public boolean shouldContinue(Bot bot) {
+        return isOwner(bot) && condition != Condition.FINISHED && condition != Condition.CANCELED ;
     }
 
     @Override
@@ -41,7 +42,7 @@ public class SudoCommand extends OwnerCommand {
         if (contact == null){
             bot.sendTextMessage(moderatorId, "Вы не прислали контант");
         } else {
-            ModeratorController.INSTANCE.addModerator(contact.getUserID().longValue());
+            bot.getModeratorController().addModerator(contact.getUserID().longValue());
             bot.sendTextMessage(moderatorId, "Пользователь стал модератором");
             condition = Condition.FINISHED;
         }

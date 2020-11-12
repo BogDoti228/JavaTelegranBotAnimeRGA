@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 
-public enum GoogleDriveClient {
+public enum GoogleDriveClient implements Serializable{
     INSTANCE;
 
     private final String APPLICATION_NAME = "AnimeBotRGA";
@@ -165,11 +165,8 @@ public enum GoogleDriveClient {
 
         Drive driveService = getDriveService();
 
-        File file =
-                driveService.files().create(fileMetadata, uploadStreamContent)
-                .setFields("id, mimeType, webContentLink, webViewLink, parents, name").execute();
-
-        return file;
+        return driveService.files().create(fileMetadata, uploadStreamContent)
+        .setFields("id, mimeType, webContentLink, webViewLink, parents, name").execute();
     }
 
     private List<File> getFilesByQuery(String query) throws IOException {
@@ -179,7 +176,7 @@ public enum GoogleDriveClient {
                 = new ArrayList<File>();
         do {
             FileList result = driveService.files().list().setQ(query).setSpaces("drive")
-                    .setFields("nextPageToken, files(id, name, webContentLink, webViewLink)")
+                    .setFields("nextPageToken, files(id, name, webContentLink, webViewLink, createdTime)")
                     .setPageToken(pageToken).execute();
             files.addAll(result.getFiles());
             pageToken = result.getNextPageToken();

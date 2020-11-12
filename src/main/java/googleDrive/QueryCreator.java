@@ -1,8 +1,9 @@
 package googleDrive;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public enum QueryCreator {
+public enum QueryCreator implements Serializable {
     QUERY_CREATOR;
 
     public String createQuery(String name, String mimeType, String parrentId)

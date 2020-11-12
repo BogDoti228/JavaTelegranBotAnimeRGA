@@ -7,8 +7,10 @@ import bot.overseersModule.InfoController;
 import bot.overseersModule.ReportController;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.Serializable;
+
 public class ReportCommand implements Command{
-    private enum Condition{
+    private enum Condition implements Serializable {
         NOT_STARRED, NO_REPORTED_FILE, WAITING_TEXT_REPORT, FINISHED
     }
 
@@ -19,7 +21,7 @@ public class ReportCommand implements Command{
     @Override
     public void startExecute(Update update, Bot bot) {
         var chatId = update.getMessage().getChatId();
-        reportedFile = InfoController.INSTANCE.getLastSentContent(chatId);
+        reportedFile = bot.getInfoController().getLastSentContent(chatId);
         if (reportedFile == null){
             condition = Condition.NO_REPORTED_FILE;
             bot.sendTextMessage(chatId, "Контент для отправки репорта не был найден");
@@ -30,7 +32,7 @@ public class ReportCommand implements Command{
     }
 
     @Override
-    public boolean shouldContinue() {
+    public boolean shouldContinue(Bot bot) {
         return condition != Condition.FINISHED && condition != Condition.NO_REPORTED_FILE;
     }
 
@@ -45,7 +47,7 @@ public class ReportCommand implements Command{
         } else {
             textReport = update.getMessage().getText();
             condition = Condition.FINISHED;
-            ReportController.INSTANCE.addNewReport(this);
+            bot.getReportController().addNewReport(this);
             bot.sendTextMessage(chatId, "Спасибо за репорт, вкоре модераторы его проверят");
         }
     }

@@ -25,7 +25,7 @@ public abstract class SendCommand implements Command {
     }
 
     @Override
-    public boolean shouldContinue() {
+    public boolean shouldContinue(Bot bot) {
         return false;
     }
 

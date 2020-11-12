@@ -1,5 +1,7 @@
 package bot.content;
 
-public enum ContentType {
+import java.io.Serializable;
+
+public enum ContentType implements Serializable {
     PHOTO, GIF, VIDEO
 }

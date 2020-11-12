@@ -73,7 +73,6 @@ public enum UrlsHandler {
     }
 
     public void addNewFile(GoogleContentFile file){
-        //Вообще без понятия как это пофиксить
         switch (file.getContentType()){
             case GIF:
                 urlsGif.add((GifFile) file);
