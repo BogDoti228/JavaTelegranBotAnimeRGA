@@ -40,7 +40,7 @@ public class SudoCommand extends OwnerCommand {
             bot.sendTextMessage(moderatorId, "Выполнение команды прервано");
         }
         if (contact == null){
-            bot.sendTextMessage(moderatorId, "Вы не прислали контант");
+            bot.sendTextMessage(moderatorId, "Вы не прислали контант. Если хотите отменить, то пропишите /cancel");
         } else {
             bot.getModeratorController().addModerator(contact.getUserID().longValue());
             bot.sendTextMessage(moderatorId, "Пользователь стал модератором");

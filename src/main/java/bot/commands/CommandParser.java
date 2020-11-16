@@ -1,5 +1,6 @@
 package bot.commands;
 
+import bot.commands.moderatorCommands.ownerCommands.CheckRequestsCommand;
 import bot.commands.receiveCommands.ReceiveGifCommand;
 import bot.commands.receiveCommands.ReceivePhotoCommand;
 import bot.commands.receiveCommands.ReceiveVideoCommand;
@@ -30,6 +31,8 @@ public enum CommandParser {
         put(CommandType.CHECK_REPORTS, "/check_reports");
         put(CommandType.SUDO, "/sudo");
         put(CommandType.DESUDO, "/desudo");
+        put(CommandType.REQUEST, "/ask_sudo");
+        put(CommandType.CHECK_REQUESTS, "/check_requests");
     }};
 
     public Command getCommandByUpdate(Update update) {
@@ -77,6 +80,10 @@ public enum CommandParser {
                 return new SudoCommand();
             case DESUDO:
                 return new DesudoCommand();
+            case REQUEST:
+                return new AskModeratorCommand();
+            case CHECK_REQUESTS:
+                return new CheckRequestsCommand();
             default:
                 return null;
         }

@@ -18,7 +18,7 @@ public class CheckReportsCommand extends ModeratorCommand {
             bot.sendTextMessage(this.moderatorId, "У вас нет таких прав");
         } else {
             bot.getModeratorController().openCheckMode(this.moderatorId);
-            bot.sendTextMessage(this.moderatorId, "Вы вошли в режим модератора");
+            bot.sendTextMessage(this.moderatorId, "Вы вошли в режим проверки репортов");
             toTheNextReport(bot);
         }
     }

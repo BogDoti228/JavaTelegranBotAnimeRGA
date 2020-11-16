@@ -8,7 +8,7 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class ReportController implements Serializable {
-    private Queue<ReportCommand> reports = new ArrayDeque<>();
+    private final Queue<ReportCommand> reports = new ArrayDeque<>();
 
     public void deleteReportedFile(ReportCommand report) {
         var googleFileContent = report.getReportedFile();

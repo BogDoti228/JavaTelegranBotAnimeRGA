@@ -1,12 +1,12 @@
 package bot.commands.receiveCommands;
 
 import bot.Bot;
-import bot.BotConstants;
 import bot.commands.CommandType;
 import bot.content.ContentType;
 import bot.commands.UrlsHandler;
 import bot.content.GifFile;
 import bot.tagsConroller.NameCreator;
+import constants.BotConstants;
 import googleDrive.GoogleDriveClient;
 import org.telegram.telegrambots.meta.api.objects.Update;
 

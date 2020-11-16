@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class InfoController implements Serializable {
-    private Map<Long, Command> mapDataIdCommands = new HashMap<>();
-    private Map<Long, SendCommand> lastSentContent = new HashMap<>();
+    private final Map<Long, Command> mapDataIdCommands = new HashMap<>();
+    private final Map<Long, SendCommand> lastSentContent = new HashMap<>();
 
     public Command getLastCommand(Long chatId) {
         try {

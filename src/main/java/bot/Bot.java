@@ -5,6 +5,7 @@ import bot.commands.sendCommands.SendCommand;
 import bot.content.ContentType;
 import bot.overseersModule.ModeratorController;
 import bot.overseersModule.ReportController;
+import bot.overseersModule.RequestController;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +22,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import bot.overseersModule.InfoController;
 
 import java.io.*;
+import java.util.ArrayList;
 
 
 public class Bot extends TelegramLongPollingBot implements Serializable {
@@ -30,6 +32,8 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
         private ReportController reportController = new ReportController();
 
         private InfoController infoController = new InfoController();
+
+        private RequestController requestController = new RequestController();
     }
 
     private Logger log = Logger.getLogger(Bot.class);
@@ -97,6 +101,10 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
 
     public ReportController getReportController(){
         return this.info.reportController;
+    }
+
+    public RequestController getRequestController(){
+        return this.info.requestController;
     }
 
     private void handleNewCommand(Update update) {

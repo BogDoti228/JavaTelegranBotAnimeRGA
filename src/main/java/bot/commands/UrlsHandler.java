@@ -1,7 +1,7 @@
 package bot.commands;
 
-import bot.BotConstants;
 import bot.content.*;
+import constants.BotConstants;
 import googleDrive.GoogleDriveClient;
 import bot.tagsConroller.TagsParser;
 

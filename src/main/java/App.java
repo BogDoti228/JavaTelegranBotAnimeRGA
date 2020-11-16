@@ -1,5 +1,5 @@
 import bot.Bot;
-import bot.BotConstants;
+import constants.BotConstants;
 import com.google.api.services.drive.model.File;
 import googleDrive.GoogleDriveClient;
 import org.apache.log4j.Logger;
