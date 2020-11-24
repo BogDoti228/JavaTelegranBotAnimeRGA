@@ -6,7 +6,7 @@ import bot.content.ContentType;
 import bot.commands.UrlsHandler;
 import bot.content.PhotoFile;
 import bot.tagsConroller.NameCreator;
-import constants.BotConstants;
+import bot.BotConstants;
 import googleDrive.GoogleDriveClient;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;

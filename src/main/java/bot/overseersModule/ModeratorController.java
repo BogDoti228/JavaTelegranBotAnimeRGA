@@ -1,6 +1,6 @@
 package bot.overseersModule;
 
-import constants.BotConstants;
+import bot.BotConstants;
 
 import java.io.Serializable;
 import java.util.HashMap;

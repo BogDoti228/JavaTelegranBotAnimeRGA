@@ -6,6 +6,7 @@ import bot.content.ContentType;
 import bot.overseersModule.ModeratorController;
 import bot.overseersModule.ReportController;
 import bot.overseersModule.RequestController;
+import javassist.bytecode.analysis.Executor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,6 +24,12 @@ import bot.overseersModule.InfoController;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.locks.StampedLock;
 
 
 public class Bot extends TelegramLongPollingBot implements Serializable {
@@ -49,6 +56,12 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
     @Setter
     private String botToken;
 
+    private ConcurrentLinkedQueue<Update> updatesQueue = new ConcurrentLinkedQueue<>();
+
+    private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(10);
+
+    private HashMap<Long, StampedLock> locks = new HashMap<>();
+
     public Bot(String botName, String botToken) {
         this.botName = botName;
         this.botToken = botToken;
@@ -57,23 +70,11 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
 
     @Override
     public void onUpdateReceived(Update update) {
-        Long chatId = update.getMessage().getChatId();
-        var lastCommand = this.info.infoController.getLastCommand(chatId);
-        if (lastCommand != null && lastCommand.shouldContinue(this)) {
-            lastCommand.continueExecute(update, this);
-        } else {
-            handleNewCommand(update);
+        var chatId = update.getMessage().getChatId();
+        if (!locks.containsKey(chatId)){
+            locks.put(chatId, new StampedLock());
         }
-    }
-
-    @Override
-    public String getBotUsername() {
-        return botName;
-    }
-
-    @Override
-    public String getBotToken() {
-        return botToken;
+        executor.execute(() -> handlePlayerRequest(update));
     }
 
     public void botConnect() {
@@ -91,6 +92,21 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
         }
     }
 
+    private void handlePlayerRequest(Update update){
+        Long chatId = update.getMessage().getChatId();
+        var lock = locks.get(chatId);
+        var stamp = lock.writeLock();
+        System.out.println("Начал" + chatId);
+        var lastCommand = this.info.infoController.getLastCommand(chatId);
+        if (lastCommand != null && lastCommand.shouldContinue(this)) {
+            lastCommand.continueExecute(update, this);
+        } else {
+            handleNewCommand(update);
+        }
+        System.out.println("Закончил" + chatId);
+        lock.unlockWrite(stamp);
+    }
+
     public ModeratorController getModeratorController(){
         return this.info.moderatorController;
     }
@@ -105,6 +121,16 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
 
     public RequestController getRequestController(){
         return this.info.requestController;
+    }
+
+    @Override
+    public String getBotUsername() {
+        return botName;
+    }
+
+    @Override
+    public String getBotToken() {
+        return botToken;
     }
 
     private void handleNewCommand(Update update) {
