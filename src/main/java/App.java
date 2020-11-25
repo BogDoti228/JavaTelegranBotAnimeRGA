@@ -23,10 +23,6 @@ public class App implements Serializable{
         var file = files.get(0);
         var stream = new URL(file.getWebContentLink()).openStream();
         var bytes = stream.readAllBytes();
-        if (true){
-            System.out.println('a');
-            return;
-        }
         ApiContextInitializer.init();
         Bot bot = new Bot(BotConstants.INSTANCE.getNAME(), BotConstants.INSTANCE.getTOKEN());
         if (loadLastCondition){

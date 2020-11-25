@@ -68,6 +68,7 @@ public class CheckRequestsCommand extends OwnerCommand{
         if (currentRequest == null){
             bot.sendTextMessage(moderatorId, "На данный момент нет запросов на модератора");
         } else{
+            bot.sendTextMessage(moderatorId, "@" + currentRequest.getUserName());
             bot.sendTextMessage(moderatorId, currentRequest.getTextRequest());
         }
     }

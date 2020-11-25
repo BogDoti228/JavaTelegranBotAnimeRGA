@@ -15,10 +15,12 @@ public class AskModeratorCommand implements Command{
     private Condition condition = Condition.NOT_STARRED;
     private String textRequest;
     private Long userId;
+    private String userName;
 
     @Override
     public void startExecute(Update update, Bot bot) {
         userId = update.getMessage().getChatId();
+        userName = update.getMessage().getFrom().getUserName();
         bot.sendTextMessage(userId, "Укажите причину того зачем вам становится модератором\n"
         + "кто вы такой");
         condition = Condition.WAITING_TEXT_REQUEST;
@@ -55,5 +57,9 @@ public class AskModeratorCommand implements Command{
 
     public Long getIdUser(){
         return this.userId;
+    }
+
+    public String getUserName(){
+        return this.userName;
     }
 }
