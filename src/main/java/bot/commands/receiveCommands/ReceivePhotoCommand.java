@@ -1,7 +1,6 @@
 package bot.commands.receiveCommands;
 
 import bot.Bot;
-import bot.commands.CommandType;
 import bot.content.ContentType;
 import bot.commands.UrlsHandler;
 import bot.content.PhotoFile;
@@ -15,6 +14,10 @@ import java.net.URL;
 import java.util.Comparator;
 
 public class ReceivePhotoCommand extends ReceiveContentCommand {
+    public ReceivePhotoCommand(Long chatId) {
+        super(chatId);
+    }
+
     @Override
     public ContentType getContentType() {
         return ContentType.PHOTO;
@@ -40,10 +43,5 @@ public class ReceivePhotoCommand extends ReceiveContentCommand {
         }catch (Exception e){
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public CommandType getCommandType() {
-        return CommandType.RECEIVE_PHOTO;
     }
 }

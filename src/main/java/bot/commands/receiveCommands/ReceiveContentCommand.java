@@ -14,8 +14,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public abstract class ReceiveContentCommand implements Command {
+public abstract class ReceiveContentCommand extends Command {
     protected GoogleContentFile receivedFile;
+
+    public ReceiveContentCommand(Long chatId) {
+        super(chatId);
+    }
 
     public abstract ContentType getContentType();
 

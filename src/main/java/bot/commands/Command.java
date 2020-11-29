@@ -1,14 +1,24 @@
 package bot.commands;
 
 import bot.Bot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
-public interface Command {
-    public void startExecute(Update update, Bot bot);
+import java.io.Serializable;
+import java.util.List;
 
-    public boolean shouldContinue(Bot bot);
+public abstract class Command implements Serializable {
+    protected Long chatId;
 
-    public void continueExecute(Update update, Bot bot);
+    public Command(Long chatId){
+        this.chatId = chatId;
+    }
 
-    public CommandType getCommandType();
+    public abstract void startExecute(Update update, Bot bot);
+
+    public abstract boolean shouldContinue(Bot bot);
+
+    public abstract void continueExecute(Update update, Bot bot);
 }

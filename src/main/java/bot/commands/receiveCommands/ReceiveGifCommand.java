@@ -1,7 +1,6 @@
 package bot.commands.receiveCommands;
 
 import bot.Bot;
-import bot.commands.CommandType;
 import bot.content.ContentType;
 import bot.commands.UrlsHandler;
 import bot.content.GifFile;
@@ -14,6 +13,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.io.ByteArrayInputStream;
 
 public class ReceiveGifCommand extends ReceiveContentCommand {
+
+    public ReceiveGifCommand(Long chatId) {
+        super(chatId);
+    }
 
     @Override
     public void startExecute(Update update, Bot bot) {
@@ -39,11 +42,6 @@ public class ReceiveGifCommand extends ReceiveContentCommand {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public CommandType getCommandType() {
-        return CommandType.RECEIVE_GIF;
     }
 
     @Override

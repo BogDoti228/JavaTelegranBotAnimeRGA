@@ -3,7 +3,7 @@ package bot.commands;
 import bot.Bot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-public class StartCommand implements Command {
+public class StartCommand extends Command {
     private static final String startText = "Привет всем пользующимся этим ботом=)\n" +
             " напиши /photo чтобы получить фото\n " +
             " напиши /photo tag1 tag2 ... чтобы получить фото с тегами tag1 и tag2 ...\n " +
@@ -30,6 +30,10 @@ public class StartCommand implements Command {
             " кидайте все что сочтете достойным для нас," +
             " всем очень благодарны за использование=)";
 
+    public StartCommand(Long chatId) {
+        super(chatId);
+    }
+
     @Override
     public void startExecute(Update update, Bot bot) {
         var chatId = update.getMessage().getChatId();
@@ -44,10 +48,5 @@ public class StartCommand implements Command {
     @Override
     public void continueExecute(Update update, Bot bot) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public CommandType getCommandType() {
-        return CommandType.START;
     }
 }

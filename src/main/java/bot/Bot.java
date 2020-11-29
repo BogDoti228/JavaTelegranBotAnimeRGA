@@ -1,23 +1,20 @@
 package bot;
 
 import bot.commands.*;
-import bot.commands.sendCommands.SendCommand;
 import bot.content.ContentType;
 import bot.overseersModule.ModeratorController;
 import bot.overseersModule.ReportController;
 import bot.overseersModule.RequestController;
-import javassist.bytecode.analysis.Executor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j;
-import org.apache.http.impl.io.EmptyInputStream;
-import org.apache.log4j.Logger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import bot.overseersModule.InfoController;
@@ -25,10 +22,8 @@ import bot.overseersModule.InfoController;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
+import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.StampedLock;
 
 
@@ -43,21 +38,22 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
         private RequestController requestController = new RequestController();
     }
 
-    private Logger log = Logger.getLogger(Bot.class);
-
     final int RECONNECT_PAUSE = 10000;
 
     @Setter
     @Getter
     private String botName;
 
+    private final String[] commands = new String[]{
+            "/photo", "/video", "/gif", "/report", "/check_reports", "/ask_sudo",
+            "/check_requests", "/sudo", "/desudo"
+    };
+
     private BotInfo info;
 
     @Setter
     private String botToken;
-
-    private ConcurrentLinkedQueue<Update> updatesQueue = new ConcurrentLinkedQueue<>();
-
+    
     private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(10);
 
     private HashMap<Long, StampedLock> locks = new HashMap<>();
@@ -103,6 +99,10 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
         } else {
             handleNewCommand(update);
         }
+        lastCommand = this.info.infoController.getLastCommand(chatId);
+        if (!lastCommand.shouldContinue(this)){
+            this.showKeyboardWithCommands(chatId);
+        }
         System.out.println("Закончил" + chatId);
         lock.unlockWrite(stamp);
     }
@@ -131,13 +131,6 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
     @Override
     public String getBotToken() {
         return botToken;
-    }
-
-    private void handleNewCommand(Update update) {
-        var chatId = update.getMessage().getChatId();
-        Command command = CommandParser.INSTANCE.getCommandByUpdate(update);
-        command.startExecute(update, this);
-        this.info.infoController.addLastCommand(chatId, command);
     }
 
     public void sendTextMessage(Long chatId, String text){
@@ -178,6 +171,17 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
         }
     }
 
+    public void addKeyboardToMessage(Object message, String[] buttons){
+        var markup = new ReplyKeyboardMarkup();
+        markup.setKeyboard(this.getKeyboardRaws(buttons));
+        try {
+            var cls = message.getClass();
+            cls.getMethod("setReplyMarkup", ReplyKeyboard.class).invoke(message, markup);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void save(OutputStream stream){
         try {
             var outputStream =  new ObjectOutputStream(stream);
@@ -196,5 +200,38 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
         } catch (Exception e){
             System.out.println("Ошибка с загрузкой состояния");
         }
+    }
+
+    private void showKeyboardWithCommands(Long chatId){
+        var commands = this.commands;
+        var messageText = "Доступные команды:" + String.join(" ", commands);
+        var message = new SendMessage(chatId, messageText);
+        this.addKeyboardToMessage(message, commands);
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handleNewCommand(Update update) {
+        var chatId = update.getMessage().getChatId();
+        Command command = CommandParser.INSTANCE.getCommandByUpdate(update);
+        command.startExecute(update, this);
+        this.info.infoController.addLastCommand(chatId, command);
+    }
+
+    private List<KeyboardRow> getKeyboardRaws(String[] buttons){
+        var raws = new ArrayList<KeyboardRow>();
+        var currentRaw = new KeyboardRow();
+        var maxElementsInRaw = 5;
+        for (var i = 0; i < buttons.length; i++){
+            currentRaw.add(buttons[i]);
+            if (currentRaw.size() == maxElementsInRaw || i == buttons.length - 1){
+                raws.add(currentRaw);
+                currentRaw = new KeyboardRow();
+            }
+        }
+        return raws;
     }
 }

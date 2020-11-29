@@ -1,14 +1,16 @@
 package bot.commands.moderatorCommands.ownerCommands;
 
 import bot.Bot;
-import bot.commands.CommandType;
-import bot.overseersModule.ModeratorController;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 public class DesudoCommand extends OwnerCommand {
+    public DesudoCommand(Long chatId) {
+        super(chatId);
+    }
+
     private enum Condition implements Serializable {
         NOT_STARTED, WAITING_CONTACT, FINISHED, CANCELED
     }
@@ -17,8 +19,7 @@ public class DesudoCommand extends OwnerCommand {
 
     @Override
     public void startExecute(Update update, Bot bot) {
-        this.moderatorId = update.getMessage().getChatId();
-        bot.sendTextMessage(moderatorId, "Отправьте контакт, который хотите лишить прав модератора");
+        bot.sendTextMessage(chatId, "Отправьте контакт, который хотите лишить прав модератора");
         condition = Condition.WAITING_CONTACT;
     }
 
@@ -33,19 +34,14 @@ public class DesudoCommand extends OwnerCommand {
         var contact = update.getMessage().getContact();
         if (Objects.equals(inputText, "/cancel")){
             condition = Condition.CANCELED;
-            bot.sendTextMessage(moderatorId, "Выполнение команды прервано");
+            bot.sendTextMessage(chatId, "Выполнение команды прервано");
         }
         else if (contact == null){
-            bot.sendTextMessage(moderatorId, "Вы не прислали контант");
+            bot.sendTextMessage(chatId, "Вы не прислали контант");
         } else {
             bot.getModeratorController().demoteModerator(contact.getUserID().longValue());
-            bot.sendTextMessage(moderatorId, "Данный пользователь больше не модератор");
+            bot.sendTextMessage(chatId, "Данный пользователь больше не модератор");
             condition = Condition.FINISHED;
         }
-    }
-
-    @Override
-    public CommandType getCommandType() {
-        return CommandType.DESUDO;
     }
 }

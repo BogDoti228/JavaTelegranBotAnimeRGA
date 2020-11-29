@@ -1,13 +1,11 @@
 package bot.commands.sendCommands;
 
-import bot.commands.CommandType;
 import bot.content.ContentType;
 
 public class SendGifCommand extends SendCommand {
 
-    @Override
-    public CommandType getCommandType() {
-        return CommandType.SEND_GIF;
+    public SendGifCommand(Long chatId) {
+        super(chatId);
     }
 
     @Override

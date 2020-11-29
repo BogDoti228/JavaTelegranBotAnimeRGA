@@ -9,7 +9,11 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.Serializable;
 
-public class ReportCommand implements Command{
+public class ReportCommand extends Command{
+    public ReportCommand(Long chatId) {
+        super(chatId);
+    }
+
     private enum Condition implements Serializable {
         NOT_STARRED, NO_REPORTED_FILE, WAITING_TEXT_REPORT, FINISHED
     }
@@ -50,11 +54,6 @@ public class ReportCommand implements Command{
             bot.getReportController().addNewReport(this);
             bot.sendTextMessage(chatId, "Спасибо за репорт, вкоре модераторы его проверят");
         }
-    }
-
-    @Override
-    public CommandType getCommandType() {
-        return CommandType.REPORT;
     }
 
     public String getTextReport(){

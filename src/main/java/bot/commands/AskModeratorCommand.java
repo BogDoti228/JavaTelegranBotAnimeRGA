@@ -7,21 +7,23 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.Serializable;
 
-public class AskModeratorCommand implements Command{
+public class AskModeratorCommand extends Command{
+    public AskModeratorCommand(Long chatId) {
+        super(chatId);
+    }
+
     private enum Condition implements Serializable {
         NOT_STARRED, WAITING_TEXT_REQUEST, FINISHED
     }
 
     private Condition condition = Condition.NOT_STARRED;
     private String textRequest;
-    private Long userId;
     private String userName;
 
     @Override
     public void startExecute(Update update, Bot bot) {
-        userId = update.getMessage().getChatId();
         userName = update.getMessage().getFrom().getUserName();
-        bot.sendTextMessage(userId, "Укажите причину того зачем вам становится модератором\n"
+        bot.sendTextMessage(chatId, "Укажите причину того зачем вам становится модератором\n"
         + "кто вы такой");
         condition = Condition.WAITING_TEXT_REQUEST;
     }
@@ -37,18 +39,13 @@ public class AskModeratorCommand implements Command{
             throw new UnsupportedOperationException();
         }
         if (!update.getMessage().hasText()){
-            bot.sendTextMessage(userId, "Вы ничего не указали");
+            bot.sendTextMessage(chatId, "Вы ничего не указали");
         } else {
             textRequest = update.getMessage().getText();
             condition = Condition.FINISHED;
             bot.getRequestController().addNewRequest(this);
-            bot.sendTextMessage(userId, "Шанс того что вы станете модератором крайне мал, все проплачено, функция фо фанчик");
+            bot.sendTextMessage(chatId, "Шанс того что вы станете модератором крайне мал, все проплачено, функция фо фанчик");
         }
-    }
-
-    @Override
-    public CommandType getCommandType() {
-        return CommandType.REQUEST;
     }
 
     public String getTextRequest(){
@@ -56,7 +53,7 @@ public class AskModeratorCommand implements Command{
     }
 
     public Long getIdUser(){
-        return this.userId;
+        return this.chatId;
     }
 
     public String getUserName(){

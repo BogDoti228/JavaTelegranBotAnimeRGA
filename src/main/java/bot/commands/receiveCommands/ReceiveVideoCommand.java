@@ -1,7 +1,6 @@
 package bot.commands.receiveCommands;
 
 import bot.Bot;
-import bot.commands.CommandType;
 import bot.content.ContentType;
 import bot.commands.UrlsHandler;
 import bot.content.GifFile;
@@ -13,6 +12,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.net.URL;
 
 public class ReceiveVideoCommand extends ReceiveContentCommand {
+    public ReceiveVideoCommand(Long chatId) {
+        super(chatId);
+    }
+
     @Override
     public ContentType getContentType() {
         return ContentType.VIDEO;
@@ -37,10 +40,5 @@ public class ReceiveVideoCommand extends ReceiveContentCommand {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public CommandType getCommandType() {
-        return CommandType.RECEIVE_VIDEO;
     }
 }
