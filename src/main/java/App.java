@@ -11,18 +11,11 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 public class App implements Serializable{
-    private static final Logger log = Logger.getLogger(App.class);
     private static final boolean loadLastCondition = false;
     private static final boolean saveConditions = false;
 
     public static void main(String[] args) throws Exception {
         GoogleDriveClient.INSTANCE.init();
-        var files = GoogleDriveClient.INSTANCE.getAllFilesInFolder(
-                "1lijA52TTU6AYbu7dv9VreKIGrbKVVq6o"
-        );
-        var file = files.get(0);
-        var stream = new URL(file.getWebContentLink()).openStream();
-        var bytes = stream.readAllBytes();
         ApiContextInitializer.init();
         Bot bot = new Bot(BotConstants.INSTANCE.getNAME(), BotConstants.INSTANCE.getTOKEN());
         if (loadLastCondition){

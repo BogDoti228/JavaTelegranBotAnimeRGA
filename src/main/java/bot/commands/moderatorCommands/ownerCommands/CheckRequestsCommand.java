@@ -6,7 +6,14 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.Serializable;
+
 public class CheckRequestsCommand extends OwnerCommand{
+    //private enum Conditions implements Serializable {
+    //    NOT_STARTED, CHECKING, FINISHED
+   // }
+
+  //  private Conditions condition = Conditions.NOT_STARTED;
 
     private AskModeratorCommand currentRequest;
 
@@ -16,6 +23,7 @@ public class CheckRequestsCommand extends OwnerCommand{
 
     @Override
     public void startExecute(Update update, Bot bot) {
+     //   condition = Conditions.CHECKING;
         if (!isModerator(bot)){
             bot.sendTextMessage(chatId, "У вас нет таких прав");
         } else {

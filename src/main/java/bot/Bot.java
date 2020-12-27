@@ -20,10 +20,10 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import bot.overseersModule.InfoController;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.StampedLock;
 
 
@@ -44,9 +44,16 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
     @Getter
     private String botName;
 
-    private final String[] commands = new String[]{
-            "/photo", "/video", "/gif", "/report", "/check_reports", "/ask_sudo",
-            "/check_requests", "/sudo", "/desudo"
+    private final String[] userCommands = new String[]{
+            "/photo", "/video", "/gif", "/report", "/ask_sudo",
+    };
+
+    private final String[] moderatorCommands = new String[]{
+            "/check_reports"
+    };
+
+    private final String[] ownerCommands = new String[]{
+            "/sudo", "/desudo", "/check_requests"
     };
 
     private BotInfo info;
@@ -54,9 +61,9 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
     @Setter
     private String botToken;
     
-    private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(10);
+    private Executor executor = Executors.newFixedThreadPool(10);
 
-    private HashMap<Long, StampedLock> locks = new HashMap<>();
+    private HashMap<Long, ReentrantLock> locks = new HashMap<>();
 
     public Bot(String botName, String botToken) {
         this.botName = botName;
@@ -67,8 +74,9 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
     @Override
     public void onUpdateReceived(Update update) {
         var chatId = update.getMessage().getChatId();
+        System.out.println("Получил" + chatId);
         if (!locks.containsKey(chatId)){
-            locks.put(chatId, new StampedLock());
+            locks.put(chatId, new ReentrantLock());
         }
         executor.execute(() -> handlePlayerRequest(update));
     }
@@ -91,20 +99,23 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
     private void handlePlayerRequest(Update update){
         Long chatId = update.getMessage().getChatId();
         var lock = locks.get(chatId);
-        var stamp = lock.writeLock();
-        System.out.println("Начал" + chatId);
-        var lastCommand = this.info.infoController.getLastCommand(chatId);
-        if (lastCommand != null && lastCommand.shouldContinue(this)) {
-            lastCommand.continueExecute(update, this);
-        } else {
-            handleNewCommand(update);
+        lock.lock();
+        try {
+            var lastCommand = this.info.infoController.getLastCommand(chatId);
+            if (lastCommand != null && lastCommand.shouldContinue(this)) {
+                lastCommand.continueExecute(update, this);
+            } else {
+                handleNewCommand(update);
+            }
+            lastCommand = this.info.infoController.getLastCommand(chatId);
+            if (!lastCommand.shouldContinue(this)) {
+                this.showKeyboardWithCommands(chatId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        lastCommand = this.info.infoController.getLastCommand(chatId);
-        if (!lastCommand.shouldContinue(this)){
-            this.showKeyboardWithCommands(chatId);
-        }
-        System.out.println("Закончил" + chatId);
-        lock.unlockWrite(stamp);
+        lock.unlock();
+        System.out.println("Обработал" + chatId + update.getMessage().getText());
     }
 
     public ModeratorController getModeratorController(){
@@ -203,10 +214,16 @@ public class Bot extends TelegramLongPollingBot implements Serializable {
     }
 
     private void showKeyboardWithCommands(Long chatId){
-        var commands = this.commands;
+        ArrayList<String> commands = new ArrayList<>(Arrays.asList(userCommands));
+        if (this.info.moderatorController.isUserModerator(chatId)){
+            Collections.addAll(commands, moderatorCommands);
+        }
+        if (this.info.moderatorController.isOwner(chatId)){
+            Collections.addAll(commands, ownerCommands);
+        }
         var messageText = "Доступные команды:" + String.join(" ", commands);
         var message = new SendMessage(chatId, messageText);
-        this.addKeyboardToMessage(message, commands);
+        this.addKeyboardToMessage(message, commands.toArray(String[]::new));
         try {
             execute(message);
         } catch (TelegramApiException e) {
