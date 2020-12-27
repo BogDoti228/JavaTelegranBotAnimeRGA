@@ -8,6 +8,7 @@ import bot.overseersModule.ReportController;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class ReportCommand extends Command{
     public ReportCommand(Long chatId) {

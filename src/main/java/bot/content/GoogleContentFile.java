@@ -38,4 +38,18 @@ public abstract class GoogleContentFile implements Serializable {
     }
 
     public abstract InputStream openStream();
+
+    @Override
+    public int hashCode() {
+        return this.url.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj.getClass() != this.getClass()) {
+            return false;
+        }
+        var objAsFile = (GoogleContentFile) obj;
+        return this.url.equals(objAsFile.url);
+    }
 }

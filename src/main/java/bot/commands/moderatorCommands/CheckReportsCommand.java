@@ -42,8 +42,14 @@ public class CheckReportsCommand extends ModeratorCommand {
                 this.sendClosingCheckModeMessage(bot);
                 break;
             case "/delete":
-                bot.getReportController().deleteReportedFile(currentReport);
-                bot.sendTextMessage(chatId, "Удаление прошло успешно");
+                if (currentReport != null) {
+                    bot.getReportController().deleteReportedFile(currentReport);
+                    this.currentReport = null;
+                    bot.sendTextMessage(chatId, "Удаление прошло успешно");
+                    this.toTheNextReport(bot);
+                } else {
+                    bot.sendTextMessage(chatId, "Нечего удалять");
+                }
                 break;
             case "/next":
                 toTheNextReport(bot);
